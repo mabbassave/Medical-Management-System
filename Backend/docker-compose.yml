@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: medical_backend
+    ports:
+      - '5000:5000'
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:latest
+    container_name: medical_mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: medical_redis
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

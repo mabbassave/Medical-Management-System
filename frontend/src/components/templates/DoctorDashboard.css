@@ -1,0 +1,387 @@
+/* ── Medivanta Professional Clinical Workspace ──────────────────────────── */
+
+.doctor-workspace {
+  background-color: #F8FAFC;
+  color: #0F172A;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ── Deep Slate Navigation Sidebar ────────────────────────────────── */
+.app-sidebar.doctor-sidebar {
+  background: #0F172A;
+  border-right: 1px solid #1E293B;
+  width: 260px;
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.12);
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #FFFFFF;
+}
+
+.app-sidebar.doctor-sidebar.is-collapsed {
+  width: 76px;
+}
+
+.app-sidebar-top {
+  height: 70px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.doctor-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+}
+
+.doctor-brand span {
+  color: #FFFFFF;
+}
+
+.doctor-sidebar-toggle {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doctor-sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+/* Sidebar Navigation Items */
+.app-sidebar-nav {
+  padding: 1rem 0.75rem;
+}
+
+.app-sidebar-nav a {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94A3B8;
+  transition: all 0.15s ease;
+  position: relative;
+  text-decoration: none;
+}
+
+.app-sidebar-nav a:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-sidebar-nav a.active {
+  color: #FFFFFF !important;
+  background: #0D9488 !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
+}
+
+.app-sidebar-nav a.active svg {
+  color: #FFFFFF !important;
+}
+
+.app-sidebar-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem 0.75rem;
+}
+
+.app-sidebar-footer-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94A3B8;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.app-sidebar-footer-item:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Header ───────────────────────────────────────────────────────── */
+.app-header.doctor-header {
+  height: 70px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid #E2E8F0;
+  padding: 0 1.75rem;
+}
+
+.app-page-heading h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+}
+
+.app-page-heading p {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #0D9488;
+  text-transform: uppercase;
+}
+
+.app-user-avatar {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  color: #0D9488;
+}
+
+.doctor-mobile-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  transition: background-color 0.15s ease;
+}
+
+.doctor-mobile-menu:hover {
+  background: #F8FAFC;
+}
+
+/* ── Content Shell ────────────────────────────────────────────────── */
+.app-content.doctor-workspace-content {
+  background-color: #F8FAFC;
+  padding: 2rem 2.25rem;
+}
+
+.app-content-shell.doctor-content-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ── Stat Cards ───────────────────────────────────────────────────── */
+.dashboard-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-stat-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  transition: all 0.2s ease;
+}
+
+.dashboard-stat-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.dashboard-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.dashboard-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748B;
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-stat-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0D9488;
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid #F1F5F9;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.dashboard-card-action:hover {
+  color: #0F766E;
+}
+
+/* ── Timeline & Chart Components ──────────────────────────────────── */
+.doctor-dashboard-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.doctor-dashboard-chart-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.doctor-dashboard-chart-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: #F1F5F9;
+  overflow: hidden;
+}
+
+.doctor-dashboard-chart-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: #0D9488;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.doctor-dashboard-chart-fill.success {
+  background: #059669;
+}
+
+.doctor-dashboard-chart-fill.warning {
+  background: #D97706;
+}
+
+.doctor-dashboard-chart-fill.danger {
+  background: #DC2626;
+}
+
+/* ── Responsive Refinements ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .app-content.doctor-workspace-content {
+    padding: 1.25rem 1rem;
+  }
+  .app-header.doctor-header {
+    padding: 0 1rem;
+  }
+}
+
+.doctor-workspace,
+.app-content.doctor-workspace-content {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.app-sidebar.doctor-sidebar,
+.dashboard-stat-card {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+}
+
+.app-sidebar.doctor-sidebar {
+  color: var(--color-text-primary);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.22);
+}
+
+.doctor-brand,
+.doctor-brand span,
+.app-page-heading h1,
+.dashboard-stat-value {
+  color: var(--color-text-primary) !important;
+}
+
+.app-page-heading p,
+.dashboard-card-action,
+.app-user-avatar {
+  color: #42B88E !important;
+}
+
+.app-sidebar-nav a,
+.app-sidebar-footer-item,
+.doctor-sidebar-toggle,
+.dashboard-stat-label {
+  color: var(--color-text-secondary);
+}
+
+.app-sidebar-nav a.active {
+  background: var(--color-primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 10px rgba(24, 167, 123, 0.3);
+}
+
+.app-sidebar-nav a:hover,
+.app-sidebar-footer-item:hover,
+.doctor-sidebar-toggle:hover {
+  background: rgba(240, 238, 230, 0.07);
+  color: var(--color-text-primary);
+}
+
+.app-header.doctor-header {
+  background: rgba(37, 39, 40, 0.94) !important;
+  border-color: var(--color-border) !important;
+}
+
+.app-user-avatar,
+.doctor-mobile-menu {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+}
+
+.doctor-mobile-menu {
+  color: var(--color-text-primary);
+}
+
+.dashboard-stat-card:hover {
+  border-color: rgba(24, 167, 123, 0.4);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.dashboard-card-action {
+  border-color: var(--color-border-light);
+}
+
+.doctor-dashboard-chart-track {
+  background: var(--color-surface-hover);
+}
+
+.doctor-dashboard-chart-fill {
+  background: var(--color-primary);
+}

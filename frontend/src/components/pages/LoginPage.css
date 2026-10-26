@@ -1,0 +1,235 @@
+/* ── Medivanta Professional Login Styling ───────────────────────────── */
+
+.medivanta-login {
+  background-color: #F8FAFC;
+  color: #0F172A;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.medivanta-login-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(140px);
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+.medivanta-login-glow-left {
+  top: -8rem;
+  left: -6rem;
+  width: 32rem;
+  height: 32rem;
+  background: #0D9488;
+}
+
+.medivanta-login-glow-right {
+  bottom: -8rem;
+  right: -6rem;
+  width: 30rem;
+  height: 30rem;
+  background: #2563EB;
+}
+
+.medivanta-login-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 24px;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.03);
+}
+
+.medivanta-login-panel a > span {
+  color: #0D9488 !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+}
+
+.medivanta-login .login-heading {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0F172A !important;
+}
+
+.medivanta-login-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.medivanta-login-card label {
+  color: #0F172A;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.medivanta-login-card input {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  border-radius: 10px !important;
+  font-size: 0.875rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.medivanta-login-card input:focus {
+  border-color: #0D9488 !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
+}
+
+.medivanta-login-submit {
+  border-radius: 12px !important;
+  background: #0D9488 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+  transition: all 0.15s ease !important;
+}
+
+.medivanta-login-submit:hover {
+  background: #0F766E !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25) !important;
+}
+
+/* Auth Face Panel (Deep Medical Navy-Slate HUD) */
+.auth-face-panel {
+  background: #0B1521 !important;
+  border: 1px solid #1E293B !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 45px -10px rgba(11, 21, 33, 0.3) !important;
+  position: relative;
+  overflow: hidden;
+  color: #FFFFFF !important;
+}
+
+.auth-face-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(45, 212, 191, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 212, 191, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.auth-face-beam {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #2DD4BF, #FFFFFF, #2DD4BF, transparent);
+  box-shadow: 0 0 12px #2DD4BF;
+  animation: medivanta-scan-beam 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.auth-face-corners {
+  position: absolute;
+  inset: 16px;
+  pointer-events: none;
+  background:
+    linear-gradient(#2DD4BF, #2DD4BF) left top / 20px 2px no-repeat,
+    linear-gradient(#2DD4BF, #2DD4BF) left top / 2px 20px no-repeat,
+    linear-gradient(#2DD4BF, #2DD4BF) right top / 20px 2px no-repeat,
+    linear-gradient(#2DD4BF, #2DD4BF) right top / 2px 20px no-repeat,
+    linear-gradient(#2DD4BF, #2DD4BF) left bottom / 20px 2px no-repeat,
+    linear-gradient(#2DD4BF, #2DD4BF) left bottom / 2px 20px no-repeat,
+    linear-gradient(#2DD4BF, #2DD4BF) right bottom / 20px 2px no-repeat,
+    linear-gradient(#2DD4BF, #2DD4BF) right bottom / 2px 20px no-repeat;
+  opacity: 0.85;
+}
+
+.auth-face-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 9999px;
+  background: rgba(11, 21, 33, 0.85);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  color: #5EEAD4;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(10px);
+}
+
+.auth-face-badge-dot, .auth-face-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #2DD4BF;
+  box-shadow: 0 0 6px #2DD4BF;
+}
+
+.auth-face-status {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+}
+
+@keyframes medivanta-scan-beam {
+  0% { top: 12%; opacity: 0.3; }
+  50% { top: 88%; opacity: 1; }
+  100% { top: 12%; opacity: 0.3; }
+}
+
+.medivanta-login {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.medivanta-login-panel,
+.medivanta-login-card {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.medivanta-login-panel a > span {
+  color: #42B88E !important;
+}
+
+.medivanta-login .login-heading {
+  color: var(--color-text-primary) !important;
+}
+
+.medivanta-login-card label {
+  color: var(--color-text-secondary) !important;
+}
+
+.medivanta-login-card input {
+  background: var(--color-surface-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.medivanta-login-card input::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+.medivanta-login-submit {
+  background: var(--color-primary) !important;
+  color: #FFFFFF !important;
+}
+
+.medivanta-login-submit:hover {
+  background: var(--color-primary-hover) !important;
+}
+
+.medivanta-login-glow-right {
+  background: #18A77B;
+}

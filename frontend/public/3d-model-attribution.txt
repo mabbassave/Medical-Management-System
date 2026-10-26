@@ -1,0 +1,7 @@
+3D model: "male_base" by hedy magroun
+Source: https://poly.pizza/m/eqJEiOX0Fhl
+License: Creative Commons Attribution 3.0 (CC BY 3.0)
+License URL: https://creativecommons.org/licenses/by/3.0/
+
+The source model's materials and appearance have been adjusted for the Aivora
+face-scan display.

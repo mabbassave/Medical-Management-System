@@ -1,0 +1,611 @@
+/* ── Medivanta Public Home (Inspired by Sehat Report) ─────────────── */
+
+#top {
+  background-color: #FAF9F5 !important;
+  color: #141E1B !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+  overflow-x: hidden;
+}
+
+/* ── Floating Header Navbar ────────────────────────────────────────── */
+#top>div:first-child header {
+  height: 64px !important;
+  border: 1px solid rgba(20, 30, 27, 0.08) !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 74, 68, 0.06), 0 0 0 1px rgba(20, 30, 27, 0.04) !important;
+  padding: 0 1.25rem !important;
+  transition: all 0.25s ease !important;
+}
+
+#top>div:first-child header a>span {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #0F4A44 !important;
+  letter-spacing: -0.02em !important;
+}
+
+#top>div:first-child header nav a {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #5C6E67 !important;
+  transition: color 0.18s ease !important;
+  padding: 0.5rem 0.85rem !important;
+}
+
+#top>div:first-child header nav a:hover {
+  color: #0F4A44 !important;
+}
+
+#top>div:first-child header div>a:first-child {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #141E1B !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 9999px !important;
+  transition: all 0.18s ease !important;
+}
+
+#top>div:first-child header div>a:first-child:hover {
+  background-color: #F3F2EC !important;
+  color: #0F4A44 !important;
+}
+
+#top>div:first-child header div>a:last-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #FFFFFF !important;
+  background: #10B981 !important;
+  padding: 0.55rem 1.25rem !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+#top>div:first-child header div>a:last-child:hover {
+  background: #059669 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+}
+
+#top>div:first-child header button {
+  background: transparent !important;
+  border: 1px solid #E6E5DE !important;
+  color: #141E1B !important;
+  border-radius: 9999px !important;
+}
+
+/* ── Hero Section ─────────────────────────────────────────────────── */
+#hero-section {
+  position: relative !important;
+  background: radial-gradient(ellipse 60% 40% at 50% 15%, rgba(15, 74, 68, 0.06), transparent 70%), #FAF9F5 !important;
+  color: #141E1B !important;
+  padding-top: 120px !important;
+  padding-bottom: 80px !important;
+}
+
+.gsap-hero-badge,
+#hero-section p:first-of-type {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.4rem 0.9rem !important;
+  border-radius: 9999px !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(20, 30, 27, 0.08) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #0F4A44 !important;
+}
+
+.gsap-hero-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+  font-size: clamp(2.5rem, 5vw, 4rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.035em !important;
+  color: #141E1B !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 1.25rem !important;
+}
+
+.gsap-hero-desc {
+  font-size: clamp(1rem, 1.25vw, 1.125rem) !important;
+  line-height: 1.65 !important;
+  color: #5C6E67 !important;
+  max-width: 540px !important;
+  margin-bottom: 2rem !important;
+}
+
+.gsap-hero-actions a:first-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  background: #10B981 !important;
+  color: #FFFFFF !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  padding: 0.85rem 1.75rem !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+
+.gsap-hero-actions a:first-child:hover {
+  background: #059669 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45) !important;
+}
+
+.gsap-hero-actions a:last-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E6E5DE !important;
+  color: #141E1B !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  padding: 0.85rem 1.75rem !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
+}
+
+.gsap-hero-actions a:last-child:hover {
+  background: #F3F2EC !important;
+  transform: translateY(-2px) !important;
+}
+
+.gsap-hero-pills {
+  border-color: #E6E5DE !important;
+  color: #5C6E67 !important;
+}
+
+.gsap-hero-pills svg {
+  color: #0F4A44 !important;
+}
+
+/* Hero Visual Card (Sehat Report Mockup Aesthetic) */
+.gsap-hero-visual>div {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(20, 30, 27, 0.08) !important;
+  border-radius: 28px !important;
+  box-shadow: 0 20px 45px -10px rgba(15, 74, 68, 0.12), 0 0 0 1px rgba(20, 30, 27, 0.04) !important;
+  padding: 10px !important;
+}
+
+.gsap-hero-visual img {
+  border-radius: 20px !important;
+}
+
+/* ── Section 3: AI Face & Vitals Scan Biometric ───────────────────── */
+#face-scan.face-scan-section {
+  position: relative !important;
+  width: calc(100% - 3rem) !important;
+  max-width: 1240px !important;
+  margin: 3.5rem auto !important;
+  padding: 4.5rem 3.5rem !important;
+  border-radius: 32px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: #0F3D36 !important;
+  box-shadow: 0 24px 60px -12px rgba(15, 61, 54, 0.35) !important;
+  color: #FFFFFF !important;
+}
+
+#face-scan h2 {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+  font-size: clamp(2rem, 3.8vw, 3.1rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.03em !important;
+  color: #FFFFFF !important;
+}
+
+#face-scan p {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 1rem !important;
+  line-height: 1.65 !important;
+}
+
+.face-scan-image-frame {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1.25 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 24px !important;
+  background: #08211D !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+  overflow: hidden !important;
+}
+
+.face-scan-beam {
+  position: absolute !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #D9FF5B, #FFFFFF, #D9FF5B, transparent) !important;
+  box-shadow: 0 0 12px #D9FF5B !important;
+  animation: medivanta-scan-beam 3.2s ease-in-out infinite !important;
+}
+
+.face-scan-corners {
+  position: absolute !important;
+  inset: 14px !important;
+  background:
+    linear-gradient(#D9FF5B, #D9FF5B) left top / 22px 2px no-repeat,
+    linear-gradient(#D9FF5B, #D9FF5B) left top / 2px 22px no-repeat,
+    linear-gradient(#D9FF5B, #D9FF5B) right top / 22px 2px no-repeat,
+    linear-gradient(#D9FF5B, #D9FF5B) right top / 2px 22px no-repeat,
+    linear-gradient(#D9FF5B, #D9FF5B) left bottom / 22px 2px no-repeat,
+    linear-gradient(#D9FF5B, #D9FF5B) left bottom / 2px 22px no-repeat,
+    linear-gradient(#D9FF5B, #D9FF5B) right bottom / 22px 2px no-repeat,
+    linear-gradient(#D9FF5B, #D9FF5B) right bottom / 2px 22px no-repeat !important;
+  opacity: 0.9 !important;
+}
+
+.face-scan-status {
+  position: absolute !important;
+  right: 16px !important;
+  bottom: 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.45rem 0.85rem !important;
+  border-radius: 9999px !important;
+  background: rgba(8, 33, 29, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  color: #FFFFFF !important;
+  text-transform: uppercase !important;
+}
+
+.face-scan-status-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 9999px !important;
+  background: #D9FF5B !important;
+  box-shadow: 0 0 8px #D9FF5B !important;
+}
+
+/* ── Section 4 & 5: Value Foundation & Platform Capabilities ─────── */
+#about {
+  background-color: #FAF9F5 !important;
+  color: #141E1B !important;
+  padding: 5rem 1.5rem !important;
+}
+
+.value-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E6E5DE !important;
+  border-radius: 20px !important;
+  padding: 2rem !important;
+  box-shadow: 0 2px 10px rgba(15, 74, 68, 0.04), 0 0 0 1px rgba(20, 30, 27, 0.04) !important;
+  transition: all 0.22s ease !important;
+}
+
+.value-card:hover {
+  border-color: rgba(15, 74, 68, 0.25) !important;
+  box-shadow: 0 12px 28px -4px rgba(15, 74, 68, 0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.value-card .card-icon-inner {
+  background: #E6F4F1 !important;
+  color: #0F4A44 !important;
+  border-radius: 14px !important;
+}
+
+#solutions {
+  background-color: #0F4A44 !important;
+  color: #FFFFFF !important;
+  padding: 5.5rem 1.5rem !important;
+}
+
+#solutions h2 {
+  color: #FFFFFF !important;
+}
+
+#solutions p {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.gsap-feature-card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 20px !important;
+  padding: 1.75rem !important;
+  transition: all 0.22s ease !important;
+}
+
+.gsap-feature-card:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: #D9FF5B !important;
+  transform: translateY(-2px) !important;
+}
+
+.gsap-feature-card .card-icon-inner {
+  background: #D9FF5B !important;
+  color: #0F3D36 !important;
+  border-radius: 12px !important;
+}
+
+.gsap-feature-card h3 {
+  color: #FFFFFF !important;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid #E6E5DE !important;
+  background: #FAF9F5 !important;
+  color: #5C6E67 !important;
+  padding: 4rem 1.5rem 2.5rem !important;
+}
+
+footer a {
+  color: #5C6E67 !important;
+  transition: color 0.18s ease !important;
+}
+
+footer a:hover {
+  color: #0F4A44 !important;
+}
+
+/* ── Responsive adjustments ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  #top>div:first-child header {
+    padding: 0 1rem !important;
+    height: 58px !important;
+  }
+
+  #hero-section {
+    padding-top: 96px !important;
+    padding-bottom: 48px !important;
+  }
+
+  #face-scan.face-scan-section {
+    width: calc(100% - 1.5rem) !important;
+    padding: 2.5rem 1.5rem !important;
+    margin: 2rem auto !important;
+  }
+}
+
+/* Warm olive, charcoal and teal palette from the supplied UI reference */
+#top {
+  background-color: #252728 !important;
+  color: #F0EEE6 !important;
+}
+
+#top>div:first-child header {
+  background: rgba(37, 39, 40, 0.94) !important;
+  border-color: rgba(226, 222, 204, 0.12) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18) !important;
+}
+
+#top>div:first-child header a>span,
+#top>div:first-child header nav a,
+#top>div:first-child header div>a:first-child,
+#top>div:first-child header button {
+  color: #F0EEE6 !important;
+}
+
+#top>div:first-child header nav a:hover,
+#top>div:first-child header div>a:first-child:hover {
+  color: #70CAA7 !important;
+}
+
+#top>div:first-child header div>a:last-child,
+.gsap-hero-actions a:first-child {
+  background: #18A77B !important;
+  box-shadow: 0 4px 16px rgba(24, 167, 123, 0.25) !important;
+}
+
+#top>div:first-child header div>a:last-child:hover,
+.gsap-hero-actions a:first-child:hover {
+  background: #128B67 !important;
+}
+
+#hero-section,
+#about {
+  background: radial-gradient(ellipse 72% 55% at 52% 28%, rgba(52, 72, 115, 0.32), transparent 72%), #252728 !important;
+  color: #F0EEE6 !important;
+}
+
+#hero-section p:first-of-type,
+.gsap-hero-visual>div {
+  background: #252728 !important;
+  border-color: rgba(226, 222, 204, 0.14) !important;
+  color: #F0EEE6 !important;
+}
+
+.gsap-hero-title,
+#about h2,
+#about h3,
+#solutions h2,
+#solutions h3 {
+  color: #F0EEE6 !important;
+}
+
+.gsap-hero-desc,
+#about p,
+#solutions p {
+  color: #C0BEB5 !important;
+}
+
+.gsap-hero-pills {
+  border-color: rgba(226, 222, 204, 0.16) !important;
+  color: #C0BEB5 !important;
+}
+
+.gsap-hero-pills svg,
+.value-card .card-icon-inner {
+  color: #55CBA0 !important;
+}
+
+.gsap-hero-actions a:last-child {
+  background: #252728 !important;
+  border-color: rgba(226, 222, 204, 0.18) !important;
+  color: #F0EEE6 !important;
+}
+
+.gsap-hero-actions a:last-child:hover {
+  background: #333432 !important;
+}
+
+#face-scan.face-scan-section,
+#solutions {
+  background: #252728 !important;
+  border-color: rgba(226, 222, 204, 0.14) !important;
+  color: #F0EEE6 !important;
+}
+
+#face-scan h2,
+#face-scan p,
+#solutions h2,
+#solutions p {
+  color: #F0EEE6 !important;
+}
+
+#face-scan p,
+#solutions p {
+  color: #C0BEB5 !important;
+}
+
+.face-scan-image-frame {
+  background: #1D201F !important;
+}
+
+.face-scan-beam,
+.face-scan-status-dot {
+  background-color: #18A77B !important;
+  box-shadow: 0 0 12px rgba(24, 167, 123, 0.75) !important;
+}
+
+.face-scan-corners {
+  background:
+    linear-gradient(#18A77B, #18A77B) left top / 22px 2px no-repeat,
+    linear-gradient(#18A77B, #18A77B) left top / 2px 22px no-repeat,
+    linear-gradient(#18A77B, #18A77B) right top / 22px 2px no-repeat,
+    linear-gradient(#18A77B, #18A77B) right top / 2px 22px no-repeat,
+    linear-gradient(#18A77B, #18A77B) left bottom / 22px 2px no-repeat,
+    linear-gradient(#18A77B, #18A77B) left bottom / 2px 22px no-repeat,
+    linear-gradient(#18A77B, #18A77B) right bottom / 22px 2px no-repeat,
+    linear-gradient(#18A77B, #18A77B) right bottom / 2px 22px no-repeat !important;
+}
+
+.value-card,
+.gsap-feature-card {
+  background: #2B2D2D !important;
+  border-color: rgba(226, 222, 204, 0.14) !important;
+  color: #F0EEE6 !important;
+}
+
+.value-card .card-icon-inner,
+.gsap-feature-card .card-icon-inner {
+  background: rgba(24, 167, 123, 0.18) !important;
+  color: #70CAA7 !important;
+}
+
+.gsap-feature-card:hover,
+.value-card:hover {
+  border-color: rgba(24, 167, 123, 0.45) !important;
+}
+
+#top footer {
+  border-color: rgba(226, 222, 204, 0.14) !important;
+  background: #252728 !important;
+  color: #C0BEB5 !important;
+}
+
+#top footer a {
+  color: #C0BEB5 !important;
+}
+
+#top footer a:hover {
+  color: #70CAA7 !important;
+}
+
+/* Unified charcoal benefits section with clear text and teal accents. */
+#benefits-section {
+  background: radial-gradient(ellipse 75% 55% at 50% 0%, rgba(48, 65, 101, 0.24), transparent 75%), #252728 !important;
+  border-color: rgba(226, 222, 204, 0.12) !important;
+  color: #F0EEE6 !important;
+}
+
+#benefits-section .section-header > span {
+  color: #70CAA7 !important;
+}
+
+#benefits-section .section-header h2,
+#benefits-section .benefit-card h3 {
+  color: #F0EEE6 !important;
+}
+
+#benefits-section .benefit-card {
+  background: #2B2D2D !important;
+  border-color: rgba(226, 222, 204, 0.16) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+#benefits-section .benefit-card p {
+  color: #C0BEB5 !important;
+}
+
+#benefits-section .benefit-card > div:first-child {
+  background: rgba(24, 167, 123, 0.14) !important;
+  color: #70CAA7 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+#benefits-section .benefit-card:hover {
+  border-color: rgba(24, 167, 123, 0.4) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24) !important;
+}
+
+#how-it-works-section {
+  background: radial-gradient(ellipse 72% 55% at 52% 24%, rgba(52, 72, 115, 0.24), transparent 72%), #252728 !important;
+  border-color: rgba(226, 222, 204, 0.12) !important;
+  color: #F0EEE6 !important;
+}
+
+#how-it-works-section .section-header > span,
+#how-it-works-section .gsap-step-item > span {
+  color: #70CAA7 !important;
+}
+
+#how-it-works-section .section-header h2,
+#how-it-works-section .gsap-step-item h3 {
+  color: #F0EEE6 !important;
+}
+
+#how-it-works-section .section-header p,
+#how-it-works-section .gsap-step-item > p {
+  color: #C0BEB5 !important;
+}
+
+#how-it-works-section .gsap-step-item {
+  background: #2B2D2D !important;
+  border-color: rgba(226, 222, 204, 0.16) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+#how-it-works-section .gsap-step-item > div {
+  color: #D7D5CC !important;
+}
+
+#how-it-works-section .gsap-step-item svg {
+  color: #70CAA7 !important;
+}
+
+#how-it-works-section .gsap-step-item:hover {
+  border-color: rgba(24, 167, 123, 0.4) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24) !important;
+}

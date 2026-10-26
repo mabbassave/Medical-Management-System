@@ -1,0 +1,118 @@
+.face-scan-overlay {
+  overflow: hidden;
+}
+
+.face-scan-dialog {
+  max-height: calc(100dvh - 1rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgb(207 224 255 / 0.35) transparent;
+  scrollbar-width: thin;
+}
+
+.face-scan-header {
+  min-height: 0;
+}
+
+.face-scan-preview-wrap {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding-block: 0.85rem;
+}
+
+.face-scan-viewport {
+  width: min(100%, 56dvh, 32rem);
+  max-width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 4 / 3;
+}
+
+.face-scan-actions button {
+  min-width: 0;
+}
+
+/* Face authentication keeps its existing consent and capture flow, with emerald styling. */
+.face-scan-dialog { border-color:#193C2C!important;border-radius:18px!important;background:linear-gradient(145deg,#0B2119,#061510)!important;color:#F4FFF7!important;box-shadow:0 25px 70px rgb(0 0 0 / .65),0 0 30px rgb(53 240 120 / .08)!important; }
+.face-scan-dialog .face-scan-header { border-color:#193C2C!important; }
+.face-scan-dialog :is(h2,p,label) { color:#F4FFF7!important; }
+.face-scan-dialog .text-white\/65,.face-scan-dialog .text-white\/70,.face-scan-dialog .text-white\/60 { color:#A5B9AD!important; }
+.face-scan-dialog .text-\[\#56E8F2\],.face-scan-dialog .bg-\[\#56E8F2\] { color:#8CFFAC!important;background-color:#35F078!important; }
+.face-scan-dialog button { border-color:#193C2C!important; }
+.face-scan-dialog input[type=checkbox] { accent-color:#35F078; }
+.face-scan-dialog [role=alert],.face-scan-dialog [role=status] { border-color:#193C2C!important;background:#0B2119!important;color:#DCEBE0!important; }
+.face-scan-dialog .face-scan-viewport { border-color:#193C2C!important;background:#020A08!important; }
+
+@media (max-height: 640px) {
+  .face-scan-viewport {
+    width: min(100%, 48dvh, 28rem);
+  }
+
+  .face-scan-preview-wrap {
+    padding-block: 0.6rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .face-scan-dialog {
+    border-radius: 1.25rem;
+  }
+
+  .face-scan-viewport {
+    width: min(100%, 56dvh, 32rem);
+  }
+}
+
+@media (max-width: 639px) and (max-height: 640px) {
+  .face-scan-viewport {
+    width: min(100%, 42dvh, 24rem);
+  }
+}
+
+.face-scan-dialog {
+  background: linear-gradient(145deg, #252728, #1D201F) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55) !important;
+}
+
+.face-scan-dialog .face-scan-header,
+.face-scan-dialog button {
+  border-color: var(--color-border) !important;
+}
+
+.face-scan-dialog :is(h2, p, label) {
+  color: var(--color-text-primary) !important;
+}
+
+.face-scan-dialog .text-white\/65,
+.face-scan-dialog .text-white\/70,
+.face-scan-dialog .text-white\/60 {
+  color: var(--color-text-secondary) !important;
+}
+
+.face-scan-dialog .text-\[\#56E8F2\] {
+  color: #70CAA7 !important;
+}
+
+.face-scan-dialog .bg-\[\#56E8F2\] {
+  background-color: var(--color-primary) !important;
+}
+
+.face-scan-dialog input[type="checkbox"] {
+  accent-color: var(--color-primary);
+}
+
+.face-scan-dialog [role="alert"],
+.face-scan-dialog [role="status"] {
+  background: var(--color-surface-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.face-scan-dialog .face-scan-viewport {
+  background: #1D201F !important;
+  border-color: var(--color-border) !important;
+}

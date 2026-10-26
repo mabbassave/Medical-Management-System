@@ -1,0 +1,154 @@
+/* ── Medivanta Professional Register Styling ────────────────────────── */
+
+.medivanta-register {
+  background-color: #F8FAFC;
+  color: #0F172A;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.medivanta-register-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(140px);
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+.medivanta-register-glow-left {
+  top: -8rem;
+  left: -6rem;
+  width: 32rem;
+  height: 32rem;
+  background: #0D9488;
+}
+
+.medivanta-register-glow-right {
+  bottom: -8rem;
+  right: -6rem;
+  width: 30rem;
+  height: 30rem;
+  background: #2563EB;
+}
+
+.medivanta-register-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 24px;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.03);
+}
+
+.medivanta-register-panel a > span {
+  color: #0D9488 !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+}
+
+.medivanta-register .register-heading {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0F172A !important;
+}
+
+.medivanta-register-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.medivanta-register-card label {
+  color: #0F172A;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.medivanta-register-card input,
+.medivanta-register-card select {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  border-radius: 10px !important;
+  font-size: 0.875rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.medivanta-register-card input:focus,
+.medivanta-register-card select:focus {
+  border-color: #0D9488 !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
+}
+
+/* Role Selector Buttons */
+.medivanta-register-role-btn {
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+  color: #475569;
+}
+
+.medivanta-register-role-btn:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.medivanta-register-role-btn.active {
+  background: #F0FDFA;
+  border-color: #0D9488;
+  color: #0F766E;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #0D9488;
+}
+
+.medivanta-register {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.medivanta-register-panel,
+.medivanta-register-card {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.medivanta-register-panel a > span {
+  color: #42B88E !important;
+}
+
+.medivanta-register .register-heading {
+  color: var(--color-text-primary) !important;
+}
+
+.medivanta-register-card label {
+  color: var(--color-text-secondary) !important;
+}
+
+.medivanta-register-card input,
+.medivanta-register-card select {
+  background: var(--color-surface-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.medivanta-register-card input::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+.medivanta-register-role-btn {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.medivanta-register-role-btn:hover,
+.medivanta-register-role-btn.active {
+  background: rgba(24, 167, 123, 0.14);
+  border-color: var(--color-primary);
+  color: #70CAA7;
+}

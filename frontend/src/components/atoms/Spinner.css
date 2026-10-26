@@ -1,0 +1,118 @@
+.medivanta-loading-indicator {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1;
+  animation: medivanta-loading-enter 480ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.medivanta-loading-mark {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  perspective: 600px;
+  animation: medivanta-loading-float 3.2s ease-in-out infinite;
+}
+
+.medivanta-loading-glow {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: rgb(207 224 255 / 0.36);
+  filter: blur(8px);
+  opacity: 0.35;
+  animation: medivanta-loading-glow 3.2s ease-in-out infinite;
+}
+
+.medivanta-loading-logo {
+  position: relative;
+  display: block;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 0 5px rgb(207 224 255 / 0.34));
+  animation: medivanta-loading-motion 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.medivanta-loading-name {
+  color: #CFE0FF;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  opacity: 0;
+  animation: medivanta-loading-name-enter 440ms cubic-bezier(0.16, 1, 0.3, 1) 120ms forwards;
+}
+
+@keyframes medivanta-loading-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes medivanta-loading-name-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes medivanta-loading-motion {
+  0%,
+  100% {
+    transform: rotateY(-8deg) rotateX(3deg) scale(0.98);
+  }
+
+  50% {
+    transform: rotateY(8deg) rotateX(-3deg) scale(1.035);
+  }
+}
+
+@keyframes medivanta-loading-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes medivanta-loading-glow {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.88);
+  }
+
+  50% {
+    opacity: 0.52;
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .medivanta-loading-indicator,
+  .medivanta-loading-mark,
+  .medivanta-loading-logo,
+  .medivanta-loading-glow,
+  .medivanta-loading-name {
+    animation: none;
+  }
+
+  .medivanta-loading-indicator,
+  .medivanta-loading-name {
+    opacity: 1;
+  }
+}
