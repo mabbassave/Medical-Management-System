@@ -212,7 +212,7 @@ export const LandingPage: React.FC = () => {
           className="medicure-nav-header pointer-events-auto"
         >
           <div className="medicure-nav-inner flex h-full items-center justify-between">
-            {/* Left: MediCure Logo */}
+            {/* Left: MediCure Logo (EXACTLY UNCHANGED) */}
             <a
               ref={logoRef}
               href="#top"
@@ -220,41 +220,50 @@ export const LandingPage: React.FC = () => {
               className="group inline-flex shrink-0 items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <AivoraLogo className="h-8 w-8 transition-transform group-hover:scale-105" />
-              <span className="text-xl font-bold tracking-tight text-slate-900 flex items-center">
+              <span className="text-xl font-bold tracking-tight text-[#101A32] flex items-center">
                 MediCure
                 <span className="ml-1 h-2 w-2 rounded-full bg-[#EAB308]" />
               </span>
             </a>
 
-            {/* Center: Navigation Links */}
+            {/* Center: Navigation Links with attractive icons */}
             <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
-              <div ref={navLinksRef} className="flex items-center gap-1">
-                {navItems.map((item) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 transition-all hover:text-emerald-700 hover:bg-emerald-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                  >
-                    {item.label}
-                  </a>
-                ))}
+              <div ref={navLinksRef} className="flex items-center gap-1.5">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                        item.active
+                          ? 'text-[#148F3A] bg-emerald-50/80 font-bold'
+                          : 'text-[#101A32] hover:text-[#148F3A] hover:bg-slate-50'
+                      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`}
+                    >
+                      <Icon className="h-4 w-4 stroke-[1.8]" />
+                      <span>{item.label}</span>
+                    </a>
+                  );
+                })}
               </div>
             </nav>
 
-            {/* Right: Actions */}
-            <div ref={navActionsRef} className="hidden items-center gap-2.5 md:flex">
+            {/* Right: Actions (Login with user icon + Prominent green Sign Up button) */}
+            <div ref={navActionsRef} className="hidden items-center gap-3 sm:flex">
               <Link
                 to="/login"
-                className="rounded-full px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:text-slate-900 hover:bg-slate-100/80"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#101A32] transition-colors hover:text-[#148F3A]"
               >
-                Log in
+                <User className="h-4 w-4 stroke-[1.8] text-[#148F3A]" />
+                <span>Login</span>
               </Link>
               <Link
                 to="/register"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-900 px-5 text-xs font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-xs active:scale-95"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-[#148F3A] px-5 text-xs font-semibold text-white transition-all hover:bg-[#117a32] hover:shadow-[0_4px_16px_rgba(20,143,58,0.25)] active:scale-95"
               >
-                <span>Book an appointment</span>
-                <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+                <span>Sign Up</span>
+                <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 stroke-[2.2]" />
               </Link>
             </div>
 
@@ -264,7 +273,7 @@ export const LandingPage: React.FC = () => {
               aria-label="Open navigation menu"
               aria-expanded={isMenuOpen}
               onClick={() => setIsMenuOpen(true)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-100 md:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#101A32] transition-colors hover:bg-slate-100 md:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -300,32 +309,39 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex-1 py-8 flex flex-col justify-center space-y-4">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={closeMenu}
-                className="text-2xl font-bold text-slate-800 transition-colors hover:text-emerald-600"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={closeMenu}
+                  className={`inline-flex items-center gap-3 text-xl font-bold transition-colors ${
+                    item.active ? 'text-[#148F3A]' : 'text-[#101A32] hover:text-[#148F3A]'
+                  }`}
+                >
+                  <Icon className="h-5 w-5 stroke-[2] text-[#148F3A]" />
+                  <span>{item.label}</span>
+                </a>
+              );
+            })}
           </div>
 
           <div className="border-t border-slate-100 pt-6 space-y-3 pb-4">
             <Link
               to="/login"
               onClick={closeMenu}
-              className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-300 text-sm font-semibold text-slate-800"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-[#101A32] hover:bg-slate-50"
             >
-              Log in
+              <User className="h-4 w-4 text-[#148F3A]" />
+              <span>Login</span>
             </Link>
             <Link
               to="/register"
               onClick={closeMenu}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-900 text-sm font-semibold text-white shadow-md"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#148F3A] text-sm font-semibold text-white shadow-md hover:bg-[#117a32]"
             >
-              Book an appointment
+              <span>Sign Up</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
