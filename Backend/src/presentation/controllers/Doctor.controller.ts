@@ -52,6 +52,7 @@ export class DoctorController {
       }
 
       const doctor = await this.doctorService.getDoctor(linkedId);
+      const doctorRecord = await DoctorModel.findOne({ doctorId: linkedId, userId: user._id }).select('licenseNumber');
       res.status(200).json({
         success: true,
         data: {
@@ -62,11 +63,49 @@ export class DoctorController {
           email: doctor.email.getValue(),
           phone: doctor.phone,
           specialization: doctor.specialization,
+          licenseNumber: doctorRecord?.licenseNumber || user.licenseNumber,
+          doctorVerificationStatus: user.doctorVerificationStatus,
         },
       });
     } catch (error) {
       next(error);
     }
+  };
+
+  public updateMyDoctor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = (req as AuthenticatedRequest).user?.userId;
+      const user = userId ? await UserModel.findById(userId) : null;
+      if (!user || user.role !== 'doctor') throw new AppError(403, 'Forbidden');
+      const linkedId = await ensureUserProfile(user);
+      if (!linkedId) throw new AppError(404, 'No doctor profile is linked to your account.');
+
+      const { fullName, phone, specialty } = req.body as { fullName: string; phone: string; specialty: string };
+      const doctor = await DoctorModel.findOne({ doctorId: linkedId, userId: user._id });
+      if (!doctor) throw new AppError(404, 'Doctor profile not found.');
+      const [firstName, ...lastNameParts] = fullName.trim().split(/\s+/);
+      doctor.firstName = firstName;
+      doctor.lastName = lastNameParts.join(' ');
+      doctor.phone = phone;
+      doctor.specialization = specialty;
+      await doctor.save();
+
+      user.fullName = fullName.trim();
+      user.phone = phone;
+      user.phoneNumber = phone;
+      user.specialty = specialty;
+      await user.save();
+
+      res.status(200).json({ success: true, data: {
+        doctorId: doctor.doctorId,
+        fullName: user.fullName,
+        email: user.email,
+        phone: doctor.phone,
+        specialization: doctor.specialization,
+        licenseNumber: doctor.licenseNumber || user.licenseNumber,
+        doctorVerificationStatus: user.doctorVerificationStatus,
+      } });
+    } catch (error) { next(error); }
   };
 
   public getDoctor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

@@ -4,6 +4,9 @@ import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import { UserModel } from '../../infrastructure/database/schemas/User.schema';
 import { PatientModel } from '../../infrastructure/database/schemas/Patient.schema';
 import { AppointmentModel } from '../../infrastructure/database/schemas/Appointment.schema';
+import { PrescriptionModel } from '../../infrastructure/database/schemas/Prescription.schema';
+import { MedicalRecordModel } from '../../infrastructure/database/schemas/MedicalRecord.schema';
+import { VitalsModel } from '../../infrastructure/database/schemas/Vitals.schema';
 import { ensureUserProfile } from '../../infrastructure/database/UserProfileLinker';
 import { AppError } from '../../domain/errors/AppError';
 
@@ -142,8 +145,22 @@ export class PatientController {
       if (!user || user.role !== 'doctor') throw new AppError(403, 'Only doctors can view their assigned patient list');
       const doctorId = await ensureUserProfile(user);
       if (!doctorId) throw new AppError(403, 'No doctor profile is linked to this account');
-      const patientIds = await AppointmentModel.distinct('patientId', { doctorId });
-      const patients = await PatientModel.find({ patientId: { $in: patientIds } }).sort({ firstName: 1, lastName: 1 }).lean();
+
+      const [apptPatientIds, rxPatientIds, recPatientIds, vitalPatientIds] = await Promise.all([
+        AppointmentModel.distinct('patientId', { doctorId }),
+        PrescriptionModel.distinct('patientId', { doctorId }),
+        MedicalRecordModel.distinct('patientId', { doctorId }),
+        VitalsModel.distinct('patientId', { doctorId, patientId: { $exists: true, $ne: null } }),
+      ]);
+
+      const allAssignedPatientIds = Array.from(
+        new Set([...apptPatientIds, ...rxPatientIds, ...recPatientIds, ...vitalPatientIds])
+      ).filter(Boolean);
+
+      const patients = await PatientModel.find({ patientId: { $in: allAssignedPatientIds } })
+        .sort({ firstName: 1, lastName: 1 })
+        .lean();
+
       res.status(200).json({
         success: true,
         data: patients.map((patient) => ({

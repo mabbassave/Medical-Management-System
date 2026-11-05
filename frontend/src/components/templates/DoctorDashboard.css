@@ -7,6 +7,17 @@
   min-height: 100dvh;
 }
 
+/* Doctor dashboard's four data cards: balanced 2:1 then 1:2 composition. */
+@media (min-width: 1024px) {
+  .doctor-dashboard-side {
+    display: contents;
+  }
+
+  .doctor-dashboard-activity {
+    min-width: 0;
+  }
+}
+
 /* ── Light Navigation Sidebar ─────────────────────────────────────── */
 .app-sidebar.doctor-sidebar {
   background: #FFFFFF !important;

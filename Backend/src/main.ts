@@ -44,7 +44,12 @@ if (env.isDevelopment) {
 app.use(
   cors({
     origin: (origin, callback) => {
-      callback(null, !origin || allowedClientOrigins.has(origin));
+      if (!origin) return callback(null, true);
+      if (allowedClientOrigins.has(origin)) return callback(null, true);
+      if (env.isDevelopment && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
   })

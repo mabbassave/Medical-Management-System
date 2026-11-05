@@ -178,6 +178,8 @@ export class VitalsController {
         confidence: v.confidence,
         quality: v.quality,
         recordedAt: v.recordedAt,
+        status: v.status,
+        message: v.message,
         createdAt: v.createdAt,
         analysis: {
           status: v.status,

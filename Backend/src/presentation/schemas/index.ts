@@ -154,6 +154,12 @@ export const createDoctorSchema = z.object({
   specialization: nonEmptyString('Specialization').max(100, 'Specialization cannot exceed 100 characters'),
 });
 
+export const updateMyDoctorProfileSchema = z.object({
+  fullName: nonEmptyString('Full name').max(120),
+  phone: z.string().trim().max(30),
+  specialty: z.string().trim().max(100),
+});
+
 // ---------------------------------------------------------------------------
 // Appointment schemas
 // ---------------------------------------------------------------------------

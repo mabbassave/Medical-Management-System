@@ -2,6 +2,9 @@ import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from './auth.middleware';
 import { UserModel } from '../../infrastructure/database/schemas/User.schema';
 import { AppointmentModel } from '../../infrastructure/database/schemas/Appointment.schema';
+import { PrescriptionModel } from '../../infrastructure/database/schemas/Prescription.schema';
+import { MedicalRecordModel } from '../../infrastructure/database/schemas/MedicalRecord.schema';
+import { VitalsModel } from '../../infrastructure/database/schemas/Vitals.schema';
 import { ensureUserProfile } from '../../infrastructure/database/UserProfileLinker';
 
 const createRequireRole = (roles: string[]) => {
@@ -88,13 +91,23 @@ export const requirePatientSelfOrRole = (
               ? await ensureUserProfile(persistedUser)
               : undefined;
             if (doctorId) req.user.linkedId = doctorId;
-            if (
-              !doctorId ||
-              !(await AppointmentModel.exists({
-                doctorId,
-                patientId: String(targetPatientId),
-              }))
-            ) {
+            if (!doctorId) {
+              res.status(403).json({
+                success: false,
+                message: 'No clinician profile linked to this account',
+              });
+              return;
+            }
+
+            const pId = String(targetPatientId);
+            const [hasAppt, hasRx, hasMedRec, hasVital] = await Promise.all([
+              AppointmentModel.exists({ doctorId, patientId: pId }),
+              PrescriptionModel.exists({ doctorId, patientId: pId }),
+              MedicalRecordModel.exists({ doctorId, patientId: pId }),
+              VitalsModel.exists({ doctorId, patientId: pId }),
+            ]);
+
+            if (!hasAppt && !hasRx && !hasMedRec && !hasVital) {
               res.status(403).json({
                 success: false,
                 message: 'You can only access records for your assigned patients',
