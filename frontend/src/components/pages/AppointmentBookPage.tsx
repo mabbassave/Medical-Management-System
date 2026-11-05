@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
@@ -40,13 +41,48 @@ export const AppointmentBookPage: React.FC = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [directoryError, setDirectoryError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const selectedDoctorId = useWatch({ control, name: 'doctorId' });
+  const selectedDate = useWatch({ control, name: 'date' });
+  const selectedTime = useWatch({ control, name: 'time' });
+
+  useEffect(() => {
+    if (!selectedDoctorId || !selectedDate) {
+      setBookedSlots([]);
+      setAvailabilityError(null);
+      setAvailabilityLoading(false);
+      return;
+    }
+    let active = true;
+    const start = new Date(`${selectedDate}T00:00:00`);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    setAvailabilityLoading(true);
+    setAvailabilityError(null);
+    api.get('/appointments/availability', {
+      params: { doctorId: selectedDoctorId, start: start.toISOString(), end: end.toISOString() },
+      skipToast: true,
+    }).then((response: any) => {
+      const data = response?.data || response;
+      if (active) setBookedSlots(Array.isArray(data?.bookedSlots) ? data.bookedSlots : []);
+    }).catch((error: Error) => {
+      if (active) {
+        setBookedSlots([]);
+        setAvailabilityError(error.message || 'Could not check appointment availability.');
+      }
+    }).finally(() => { if (active) setAvailabilityLoading(false); });
+    return () => { active = false; };
+  }, [selectedDoctorId, selectedDate]);
 
   useEffect(() => {
     let active = true;
@@ -101,9 +137,17 @@ export const AppointmentBookPage: React.FC = () => {
   }, [isPatient, setValue]);
 
   const onSubmit = async (data: FormData) => {
+    const appointmentDate = new Date(`${data.date}T${data.time}`);
+    if (appointmentDate.getTime() <= Date.now()) {
+      toast.error('Choose a future date and time.');
+      return;
+    }
+    if (bookedSlots.some((slot) => new Date(slot).getTime() === appointmentDate.getTime())) {
+      toast.error('That doctor already has an appointment at this time. Choose another time.');
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const appointmentDate = new Date(`${data.date}T${data.time}`);
       if (Number.isNaN(appointmentDate.getTime())) {
         throw new Error('Please enter a valid appointment date and time');
       }
@@ -225,6 +269,11 @@ export const AppointmentBookPage: React.FC = () => {
                   )}
                 </div>
               </div>
+              {selectedDoctorId && selectedDate && (
+                <p role="status" className={`-mt-4 text-xs font-medium ${availabilityError ? 'text-danger' : 'text-textSecondary'}`}>
+                  {availabilityLoading ? 'Checking this doctor’s booked times…' : availabilityError || (selectedTime ? (bookedSlots.some((slot) => new Date(slot).getTime() === new Date(`${selectedDate}T${selectedTime}`).getTime()) ? 'This time is already booked.' : 'This time is available. Availability is checked again when you confirm.') : `${bookedSlots.length} booked time${bookedSlots.length === 1 ? '' : 's'} on this date.`)}
+                </p>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <FormField

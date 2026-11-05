@@ -11,6 +11,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       appointmentDate: appointment.appointmentDate,
       status: appointment.status,
       notes: appointment.notes,
+      activityHistory: appointment.activityHistory,
     });
   }
 
@@ -21,6 +22,7 @@ export class AppointmentRepository implements IAppointmentRepository {
         appointmentDate: appointment.appointmentDate,
         status: appointment.status,
         notes: appointment.notes,
+        activityHistory: appointment.activityHistory,
       }
     );
   }
@@ -48,6 +50,16 @@ export class AppointmentRepository implements IAppointmentRepository {
     return docs.map((doc) => this.toDomain(doc));
   }
 
+  public async findScheduledAt(doctorId: string, appointmentDate: Date, excludeAppointmentId?: string): Promise<Appointment | null> {
+    const doc = await AppointmentModel.findOne({
+      doctorId,
+      appointmentDate,
+      status: 'SCHEDULED',
+      ...(excludeAppointmentId ? { appointmentId: { $ne: excludeAppointmentId } } : {}),
+    } as any) as IAppointmentDocument | null;
+    return doc ? this.toDomain(doc) : null;
+  }
+
   private toDomain(doc: IAppointmentDocument): Appointment {
     return new Appointment({
       appointmentId: doc.appointmentId,
@@ -56,6 +68,9 @@ export class AppointmentRepository implements IAppointmentRepository {
       appointmentDate: new Date(doc.appointmentDate),
       status: doc.status,
       notes: doc.notes,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+      activityHistory: doc.activityHistory,
     });
   }
 }

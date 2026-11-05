@@ -70,10 +70,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const pageTitle = currentRoute ? routeTitles[currentRoute] : 'Dashboard';
 
   useEffect(() => {
-    if (isDoctorWorkspace) {
+    if (isDashboardWorkspace) {
       window.localStorage.setItem('doctor-sidebar-collapsed', String(desktopCollapsed));
     }
-  }, [desktopCollapsed, isDoctorWorkspace]);
+  }, [desktopCollapsed, isDashboardWorkspace]);
 
   useAlerts();
 
@@ -307,13 +307,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#EAB308]" />
             </span>
           </div>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700"
-            aria-label="Close sidebar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {!isDashboardWorkspace && (
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="p-1 rounded-md text-slate-400 hover:text-slate-700"
+              aria-label="Close sidebar"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
         <nav className="app-sidebar-nav relative flex-1 space-y-1.5 overflow-y-auto px-4 py-4">
           {navItems.map((item) => {
@@ -370,7 +373,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
       {/* Desktop sidebar */}
       <aside className={`app-sidebar doctor-sidebar hidden shrink-0 flex-col border-r border-slate-200/70 bg-white transition-[width] duration-250 md:flex ${desktopCollapsed ? 'is-collapsed w-20' : 'w-64'}`}>
-        <div className={`app-sidebar-top flex h-18 shrink-0 items-center border-b border-slate-100 ${desktopCollapsed ? 'justify-center px-0' : 'justify-start px-5'}`}>
+        <div className={`app-sidebar-top flex h-18 shrink-0 items-center justify-between border-b border-slate-100 ${desktopCollapsed ? 'px-2' : 'px-4'}`}>
           <div className="doctor-brand flex items-center gap-2.5">
             <AivoraLogo className="h-8 w-8 shrink-0" />
             {!desktopCollapsed && (
@@ -380,6 +383,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               </span>
             )}
           </div>
+          {isDashboardWorkspace && (
+            <button
+              type="button"
+              onClick={() => setDesktopCollapsed((collapsed) => !collapsed)}
+              className="doctor-sidebar-toggle shrink-0"
+              aria-label={desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {desktopCollapsed ? <PanelLeftOpen className="h-4 w-4" aria-hidden="true" /> : <PanelLeftClose className="h-4 w-4" aria-hidden="true" />}
+            </button>
+          )}
         </div>
 
         <nav
@@ -423,7 +437,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               to={isPatientWorkspace ? '/portal' : '/profile'}
               title={desktopCollapsed ? 'Profile' : undefined}
               aria-label={desktopCollapsed ? 'Profile' : undefined}
-              className="app-sidebar-footer-item"
+              className={`app-sidebar-footer-item ${desktopCollapsed ? 'justify-center px-0' : ''}`}
             >
               <UserRound className={`h-4 w-4 shrink-0 ${desktopCollapsed ? '' : 'mr-3'}`} aria-hidden="true" />
               <span className={desktopCollapsed ? 'sr-only' : ''}>Profile</span>
@@ -433,7 +447,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               onClick={handleLogout}
               title={desktopCollapsed ? 'Log out' : undefined}
               aria-label="Log out"
-              className="app-sidebar-footer-item"
+              className={`app-sidebar-footer-item ${desktopCollapsed ? 'justify-center px-0' : ''}`}
             >
               <LogOut className={`h-4 w-4 shrink-0 ${desktopCollapsed ? '' : 'mr-3'}`} aria-hidden="true" />
               <span className={desktopCollapsed ? 'sr-only' : ''}>Log out</span>
@@ -451,29 +465,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               onClick={() => setMobileOpen((open) => !open)}
               aria-controls="mobile-sidebar"
               aria-expanded={mobileOpen}
-              aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              className="doctor-mobile-menu inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 md:hidden"
+              aria-label={mobileOpen ? 'Close navigation sidebar' : 'Open navigation sidebar'}
+              title={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
+              className={`doctor-mobile-menu inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 md:hidden ${mobileOpen && isDashboardWorkspace ? 'doctor-mobile-menu-inside-sidebar' : ''}`}
             >
-              {mobileOpen
-                ? <X className="h-4 w-4" aria-hidden="true" />
-                : <Menu className="h-4 w-4" aria-hidden="true" />}
+              {mobileOpen && isDashboardWorkspace ? <PanelLeftClose className="h-4 w-4" aria-hidden="true" /> : mobileOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Menu className="h-4 w-4" aria-hidden="true" />}
             </button>
-
-            {isDashboardWorkspace && (
-              <button
-                type="button"
-                onClick={() => setDesktopCollapsed(!desktopCollapsed)}
-                className="doctor-sidebar-toggle hidden md:inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                aria-label={desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                title={desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
-                {desktopCollapsed ? (
-                  <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
-                ) : (
-                  <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
-                )}
-              </button>
-            )}
 
             <div className="app-page-heading min-w-0">
               <h1 className="truncate text-xl font-bold tracking-tight text-slate-900">{pageTitle}</h1>
@@ -538,7 +535,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   <span>Face sign-in</span>
                 </button>
               )}
-            {!isDoctorWorkspace && (
+            {!isDoctorWorkspace && !isPatientWorkspace && (
             <button
               type="button"
               onClick={handleLogout}

@@ -174,6 +174,11 @@ export const bookAppointmentSchema = z.object({
   notes: z.string().trim().max(1000, 'Notes cannot exceed 1000 characters').optional(),
 });
 
+export const rescheduleAppointmentSchema = z.object({
+  appointmentDate: z.string({ error: 'Appointment date is required' }).trim()
+    .refine((value) => !Number.isNaN(Date.parse(value)), { message: 'appointmentDate must be a valid date string' }),
+});
+
 // ---------------------------------------------------------------------------
 // Vitals schemas
 // ---------------------------------------------------------------------------

@@ -153,4 +153,10 @@ export const notificationService = {
     }
     io.to(userId).emit('notification', message);
   },
+
+  emitAppointmentUpdate: (patientUserId?: string): void => {
+    if (!io) return;
+    io.to('doctor').emit('appointment-updated');
+    if (patientUserId) io.to(patientUserId).emit('appointment-updated');
+  },
 };

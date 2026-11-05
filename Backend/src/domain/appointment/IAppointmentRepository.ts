@@ -7,4 +7,5 @@ export interface IAppointmentRepository {
   findByDoctorId(doctorId: string): Promise<Appointment[]>;
   findAll(): Promise<Appointment[]>;
   update(appointment: Appointment): Promise<void>;
+  findScheduledAt(doctorId: string, appointmentDate: Date, excludeAppointmentId?: string): Promise<Appointment | null>;
 }

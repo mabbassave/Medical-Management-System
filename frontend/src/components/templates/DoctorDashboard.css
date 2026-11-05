@@ -31,6 +31,13 @@
   width: 80px;
 }
 
+.app-sidebar.doctor-sidebar.is-collapsed .app-sidebar-nav a,
+.app-sidebar.doctor-sidebar.is-collapsed .doctor-sidebar-bottom .app-sidebar-footer-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .app-sidebar-top {
   height: 72px;
   border-bottom: 1px solid rgba(241, 245, 249, 1);
@@ -71,6 +78,16 @@
   background: #F1F5F9;
   color: #0F172A;
   border-color: #CBD5E1;
+}
+
+@media (max-width: 767px) {
+  .doctor-mobile-menu-inside-sidebar {
+    position: fixed;
+    top: 1.25rem;
+    left: 13rem;
+    z-index: 60;
+    background: #FFFFFF;
+  }
 }
 
 /* Sidebar Navigation Items */

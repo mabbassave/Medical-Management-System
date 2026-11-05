@@ -5,7 +5,7 @@ import { AppointmentController } from '../controllers/Appointment.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
 import { requireRole, requirePatientSelfOrRole } from '../middlewares/role.middleware';
 import { validate } from '../middlewares/validate.middleware';
-import { bookAppointmentSchema } from '../schemas';
+import { bookAppointmentSchema, rescheduleAppointmentSchema } from '../schemas';
 
 const appointmentRouter = Router();
 
@@ -23,6 +23,7 @@ appointmentRouter.get('/', requireRole('admin', 'doctor', 'nurse'), appointmentC
 
 // Patients (for self) and staff can book appointments
 appointmentRouter.post('/', requireRole('admin', 'doctor', 'nurse', 'patient'), validate(bookAppointmentSchema), appointmentController.bookAppointment);
+appointmentRouter.get('/availability', requireRole('admin', 'doctor', 'patient'), appointmentController.getAvailability);
 
 // Appointments by patient/doctor must be registered before /:appointmentId
 appointmentRouter.get(
@@ -35,6 +36,8 @@ appointmentRouter.get(
 appointmentRouter.get('/doctor/:doctorId', requireRole('admin', 'doctor', 'nurse'), appointmentController.getAppointmentsByDoctor);
 
 appointmentRouter.put('/:appointmentId/cancel', requireRole('admin', 'doctor', 'patient'), appointmentController.cancelAppointment);
+appointmentRouter.put('/:appointmentId/complete', requireRole('admin', 'doctor'), appointmentController.completeAppointment);
+appointmentRouter.put('/:appointmentId/reschedule', requireRole('admin', 'doctor', 'patient'), validate(rescheduleAppointmentSchema), appointmentController.rescheduleAppointment);
 
 appointmentRouter.get('/:appointmentId', requireRole('admin', 'doctor', 'nurse', 'patient'), appointmentController.getAppointment);
 

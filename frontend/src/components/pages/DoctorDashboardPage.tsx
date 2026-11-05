@@ -30,9 +30,25 @@ import { useFadeUp } from '../../shared/hooks/useFadeUp';
 interface Appointment {
   appointmentId: string;
   patientId: string;
+  doctorId: string;
   appointmentDate: string;
   notes?: string;
   status: string;
+  createdAt?: string;
+  updatedAt?: string;
+  activityHistory?: Array<{
+    event: 'BOOKED' | 'CANCELLED' | 'COMPLETED' | 'RESCHEDULED';
+    actorRole: 'patient' | 'doctor' | 'admin' | 'nurse';
+    appointmentDate: string;
+    occurredAt: string;
+  }>;
+}
+
+interface AppointmentActivity {
+  appointment: Appointment;
+  occurredAt: string;
+  appointmentDate: string;
+  description: string;
 }
 
 interface CriticalAlert {
@@ -84,15 +100,19 @@ const isToday = (dateStr: string): boolean => {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return false;
   const today = new Date();
-  const localMatch =
+  return (
     d.getFullYear() === today.getFullYear() &&
     d.getMonth() === today.getMonth() &&
-    d.getDate() === today.getDate();
-  const utcMatch =
-    d.getUTCFullYear() === today.getUTCFullYear() &&
-    d.getUTCMonth() === today.getUTCMonth() &&
-    d.getUTCDate() === today.getUTCDate();
-  return localMatch || utcMatch;
+    d.getDate() === today.getDate()
+  );
+};
+
+const normalizeAppointmentStatus = (status?: string): 'scheduled' | 'completed' | 'cancelled' | null => {
+  const normalized = (status || '').trim().toLowerCase();
+  if (['scheduled', 'booked', 'pending', 'confirmed'].includes(normalized)) return 'scheduled';
+  if (['completed', 'complete', 'done'].includes(normalized)) return 'completed';
+  if (['cancelled', 'canceled'].includes(normalized)) return 'cancelled';
+  return null;
 };
 
 const statusVariant = (status: string): 'success' | 'warning' | 'danger' => {
@@ -116,6 +136,8 @@ export const DoctorDashboardPage: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [lastRefreshAt, setLastRefreshAt] = useState<Date | null>(null);
   const [refreshConnected, setRefreshConnected] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [appointmentsLoaded, setAppointmentsLoaded] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   useFadeUp(containerRef, [loading]);
@@ -133,6 +155,7 @@ export const DoctorDashboardPage: React.FC = () => {
 
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
+    setRefreshing(true);
 
     if (isInitial) {
       setLoading(true);
@@ -166,12 +189,14 @@ export const DoctorDashboardPage: React.FC = () => {
 
       let appointmentsList: Appointment[] = [];
       if (appointmentsRes.status === 'fulfilled') {
-        appointmentsList = parsePatientPortalList<Appointment>(appointmentsRes.value, 'appointments');
+        appointmentsList = parsePatientPortalList<Appointment>(appointmentsRes.value, 'appointments')
+          .filter((appointment) => appointment.doctorId === doctorId);
         setAllAppointments(appointmentsList);
         setAppointmentsError(null);
+        setAppointmentsLoaded(true);
         setLastRefreshAt(new Date());
         setRefreshConnected(true);
-      } else if (isInitial) {
+      } else {
         const err = appointmentsRes.reason;
         setAppointmentsError(err instanceof Error ? err.message : 'Failed to load appointments');
       }
@@ -276,6 +301,7 @@ export const DoctorDashboardPage: React.FC = () => {
       setRefreshConnected(false);
     } finally {
       isFetchingRef.current = false;
+      setRefreshing(false);
       if (isInitial) setLoading(false);
     }
   }, [user]);
@@ -299,6 +325,7 @@ export const DoctorDashboardPage: React.FC = () => {
 
     socket.on('critical-vitals', handleRealtimeUpdate);
     socket.on('notification', handleRealtimeUpdate);
+    socket.on('appointment-updated', handleRealtimeUpdate);
 
     // Live background polling (every 5 seconds) to catch appointment changes, assignments, cancellations
     const interval = setInterval(() => {
@@ -325,6 +352,7 @@ export const DoctorDashboardPage: React.FC = () => {
       window.removeEventListener('focus', handleFocus);
       socket.off('critical-vitals', handleRealtimeUpdate);
       socket.off('notification', handleRealtimeUpdate);
+      socket.off('appointment-updated', handleRealtimeUpdate);
     };
   }, [fetchDashboardData, user?.id]);
 
@@ -351,10 +379,12 @@ export const DoctorDashboardPage: React.FC = () => {
   const todaysAppointments = useMemo(() => {
     return allAppointments.filter((a) => {
       if (!a.appointmentDate || !isToday(a.appointmentDate)) return false;
-      const status = (a.status || '').toLowerCase().trim();
-      return status !== 'cancelled';
-    });
+      return normalizeAppointmentStatus(a.status) !== 'cancelled';
+    }).sort((a, b) => new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime());
   }, [allAppointments]);
+  const hasScheduledToday = todaysAppointments.some(
+    (appointment) => normalizeAppointmentStatus(appointment.status) === 'scheduled'
+  );
 
   // ── Metric 2: Assigned Patients ──
   // Show the actual total number of patients assigned to the currently logged-in doctor
@@ -372,9 +402,9 @@ export const DoctorDashboardPage: React.FC = () => {
 
   const appointmentStatusData = React.useMemo(() => {
     const supportedStatuses = ['scheduled', 'completed', 'cancelled'];
-    const counts = allAppointments.reduce<Record<string, number>>((acc, a) => {
-      const s = (a.status || 'unknown').toLowerCase();
-      acc[s] = (acc[s] || 0) + 1;
+    const counts = allAppointments.reduce<Record<string, number>>((acc, appointment) => {
+      const status = normalizeAppointmentStatus(appointment.status);
+      if (status) acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {});
     const total = allAppointments.length;
@@ -385,15 +415,20 @@ export const DoctorDashboardPage: React.FC = () => {
     }));
   }, [allAppointments]);
 
-  const recentActivity = allAppointments
-    .filter((a) =>
-      ['completed', 'cancelled', 'missed'].includes((a.status || '').toLowerCase())
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.appointmentDate).getTime() -
-        new Date(a.appointmentDate).getTime()
-    )
+  const recentActivity: AppointmentActivity[] = allAppointments
+    .flatMap((appointment) => (appointment.activityHistory || []).map((event) => ({
+      appointment,
+      occurredAt: event.occurredAt,
+      appointmentDate: event.appointmentDate,
+      description: event.event === 'BOOKED'
+        ? `New appointment booked by ${event.actorRole}`
+        : event.event === 'CANCELLED'
+          ? `Appointment cancelled by ${event.actorRole}`
+          : event.event === 'COMPLETED'
+            ? `Consultation completed by ${event.actorRole}`
+            : `Appointment rescheduled by ${event.actorRole}`,
+    })))
+    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
     .slice(0, 5);
 
   return (
@@ -591,7 +626,7 @@ export const DoctorDashboardPage: React.FC = () => {
                     >
                       <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
                         <div><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Today</p><p className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">{todaysAppointments.length}<span className="ml-2 text-sm font-medium text-slate-500">appointments</span></p></div>
-                        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700"><span className="h-2 w-2 rounded-full bg-emerald-500" />On schedule</span>
+                        <span className={`inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-xs font-semibold ${hasScheduledToday ? 'border-emerald-100 text-emerald-700' : 'border-slate-200 text-slate-500'}`}><span className={`h-2 w-2 rounded-full ${hasScheduledToday ? 'bg-emerald-500' : 'bg-slate-300'}`} />{!appointmentsLoaded ? 'Checking schedule' : hasScheduledToday ? 'On schedule' : todaysAppointments.length > 0 ? 'No upcoming visits' : 'No appointments'}</span>
                       </div>
                       {todaysAppointments.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 py-10 text-center">
@@ -614,11 +649,12 @@ export const DoctorDashboardPage: React.FC = () => {
                                 <div className="h-9 w-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs">
                                   <Clock className="w-4 h-4 text-emerald-600" />
                                 </div>
-                                <span className="text-sm font-bold text-slate-900 w-14">
-                                  {new Date(appt.appointmentDate).toLocaleTimeString([], {
+                                <span className="flex w-20 flex-col">
+                                  <span className="text-sm font-bold text-slate-900">{new Date(appt.appointmentDate).toLocaleTimeString([], {
                                     hour: '2-digit',
                                     minute: '2-digit',
-                                  })}
+                                  })}</span>
+                                  <span className="mt-0.5 text-[10px] font-medium text-slate-500">{new Date(appt.appointmentDate).toLocaleDateString()}</span>
                                 </span>
                               </div>
 
@@ -719,29 +755,29 @@ export const DoctorDashboardPage: React.FC = () => {
 
                 {/* ── RECENT ACTIVITY TABLE ── */}
                 <div className="doctor-dashboard-activity mt-2 lg:col-span-2">
-                  <Card title="Recent Activity" subtitle="Recently completed or updated consultations" action={<span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-wide ${refreshConnected ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-500'}`}><span className={`h-2 w-2 rounded-full ${refreshConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />{refreshConnected ? 'LIVE' : 'OFFLINE'}</span>}>
+                  <Card title="Recent Activity" subtitle="Recently completed or updated consultations" action={<span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-wide ${refreshing || refreshConnected ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-500'}`}><span className={`h-2 w-2 rounded-full ${refreshConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />{refreshing ? 'UPDATING' : refreshConnected ? 'LIVE' : 'OFFLINE'}</span>}>
                     <div className="mb-3 flex items-center gap-2 text-xs text-slate-500" role="status" aria-live="polite">
-                      {refreshConnected ? `Data refreshed ${lastRefreshAt?.toLocaleTimeString() || 'just now'}` : 'Data refresh unavailable · reconnecting'}
+                      {refreshing ? 'Updating appointment data…' : refreshConnected ? `Last successful refresh ${lastRefreshAt?.toLocaleTimeString() || 'just now'}` : 'Offline · appointment data unavailable'}
                     </div>
                     {recentActivity.length === 0 ? (
                       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 py-9 text-center"><span className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm"><Activity className="h-5 w-5" /></span><p className="text-sm font-semibold text-slate-700">No recent appointment activity to display.</p></div>
                     ) : (
                       <ul className="divide-y divide-slate-100">
-                        {recentActivity.map((appointment) => (
+                        {recentActivity.map(({ appointment, occurredAt, appointmentDate, description }) => (
                           <li
                             key={appointment.appointmentId}
                             className="flex flex-wrap items-center justify-between gap-3 rounded-xl px-2 py-3.5 transition-colors hover:bg-slate-50/70"
                           >
                             <div className="flex min-w-0 items-center gap-3">
-                              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${appointment.status.toLowerCase() === 'completed' ? 'bg-sky-50 text-sky-600' : appointment.status.toLowerCase() === 'cancelled' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{appointment.status.toLowerCase() === 'completed' ? <Stethoscope className="h-4 w-4" /> : appointment.status.toLowerCase() === 'cancelled' ? <XCircle className="h-4 w-4" /> : <CircleDot className="h-4 w-4" />}</span>
+                              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${normalizeAppointmentStatus(appointment.status) === 'completed' ? 'bg-sky-50 text-sky-600' : normalizeAppointmentStatus(appointment.status) === 'cancelled' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{normalizeAppointmentStatus(appointment.status) === 'completed' ? <Stethoscope className="h-4 w-4" /> : normalizeAppointmentStatus(appointment.status) === 'cancelled' ? <XCircle className="h-4 w-4" /> : <CircleDot className="h-4 w-4" />}</span>
                               <div className="min-w-0">
                               <p className="truncate text-sm font-bold text-slate-900">
                                 {patientNames.get(getPatientRawId(appointment.patientId))
                                   || getPatientName(appointment.patientId)}
                               </p>
-                              <p className="text-xs text-slate-500 mt-0.5">
-                                {new Date(appointment.appointmentDate).toLocaleString()}
-                              </p>
+                              <p className="mt-0.5 text-xs font-medium text-slate-600">{description}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">Appointment: {new Date(appointmentDate).toLocaleString()}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">Event time: {new Date(occurredAt).toLocaleString()}</p>
                               </div>
                             </div>
                             <Badge variant={statusVariant(appointment.status)} className="capitalize">
