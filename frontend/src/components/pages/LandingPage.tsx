@@ -2,29 +2,22 @@ import React, { lazy, Suspense, useState, useEffect, useLayoutEffect, useRef } f
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
-  Calendar,
   CalendarDays,
   CheckCircle2,
-  Clock,
   Cpu,
   FileText,
-  HeartPulse,
-  Home,
-  Info,
-  LayoutGrid,
-  Lightbulb,
+  Heart,
   Menu,
+  MessageSquare,
+  Phone,
   Pill,
-  Rocket,
   ShieldCheck,
   Sparkles,
   Users,
-  User,
+  Video,
   X,
-  Stethoscope,
-  Heart,
-  Shield,
 } from 'lucide-react';
+import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AivoraLogo } from '../atoms/AivoraLogo';
@@ -89,10 +82,10 @@ const setupRepeatableReveal = (
 };
 
 const navItems = [
-  { label: 'Home', href: '#top', icon: Home, active: true },
-  { label: 'Platform', href: '#platform', icon: LayoutGrid },
-  { label: 'Solutions', href: '#solutions', icon: Lightbulb },
-  { label: 'About', href: '#about', icon: Info },
+  { label: 'Home', href: '#top' },
+  { label: 'Platform', href: '#platform' },
+  { label: 'Solutions', href: '#solutions' },
+  { label: 'About', href: '#about' },
 ];
 
 export const LandingPage: React.FC = () => {
@@ -137,8 +130,7 @@ export const LandingPage: React.FC = () => {
       heroTl
         .fromTo('.gsap-hero-title', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65 })
         .fromTo('.gsap-hero-desc', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55 }, '-=0.4')
-        .fromTo('.gsap-hero-actions > *', { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: 0.1 }, '-=0.35')
-        .fromTo('.gsap-hero-trust > *', { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, stagger: 0.05 }, '-=0.25');
+        .fromTo('.gsap-hero-actions > *', { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: 0.1 }, '-=0.35');
 
       gsap.fromTo(
         '.gsap-hero-visual',
@@ -199,87 +191,76 @@ export const LandingPage: React.FC = () => {
   }, [isMenuOpen]);
 
   return (
-    <div ref={mainContainerRef} id="top" className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased selection:bg-emerald-100 selection:text-emerald-900">
+    <div ref={mainContainerRef} id="top" className="min-h-screen text-slate-900 antialiased selection:bg-emerald-100" style={{ background: '#F5FAF7' }}>
 
       {/* ── TOP NAVBAR ── */}
-      <div
-        className={`medicure-nav-wrapper fixed inset-x-0 top-0 z-50 w-full pointer-events-none ${
-          isScrolled ? 'scrolled' : ''
+      <header
+        ref={headerRef}
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-[#F5FAF7]/92 backdrop-blur-md shadow-xs border-b border-emerald-900/5 py-3.5'
+            : 'bg-transparent py-5 sm:py-6'
         }`}
       >
-        <header
-          ref={headerRef}
-          className="medicure-nav-header pointer-events-auto"
-        >
-          <div className="medicure-nav-inner flex h-full items-center justify-between">
-            {/* Left: MediCure Logo (EXACTLY UNCHANGED) */}
-            <a
-              ref={logoRef}
-              href="#top"
-              aria-label="MediCure Home"
-              className="group inline-flex shrink-0 items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-            >
-              <AivoraLogo className="h-8 w-8 transition-transform group-hover:scale-105" />
-              <span className="text-xl font-bold tracking-tight text-[#101A32] flex items-center">
-                MediCure
-                <span className="ml-1 h-2 w-2 rounded-full bg-[#EAB308]" />
-              </span>
-            </a>
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-8 flex items-center justify-between">
+          
+          {/* Logo — 100% unchanged */}
+          <a
+            ref={logoRef}
+            href="#top"
+            aria-label="MediCure Home"
+            className="group inline-flex shrink-0 items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128A50]"
+          >
+            <AivoraLogo className="h-8 w-8 transition-transform group-hover:scale-105" />
+            <span className="text-xl font-bold tracking-tight text-[#101828] flex items-center">
+              MediCure
+              <span className="ml-1 h-2 w-2 rounded-full bg-[#EAB308]" />
+            </span>
+          </a>
 
-            {/* Center: Navigation Links with attractive icons */}
-            <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
-              <div ref={navLinksRef} className="flex items-center gap-1.5">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                        item.active
-                          ? 'text-[#148F3A] bg-emerald-50/80 font-bold'
-                          : 'text-[#101A32] hover:text-[#148F3A] hover:bg-slate-50'
-                      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500`}
-                    >
-                      <Icon className="h-4 w-4 stroke-[1.8]" />
-                      <span>{item.label}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            </nav>
-
-            {/* Right: Actions (Login with user icon + Prominent green Sign Up button) */}
-            <div ref={navActionsRef} className="hidden items-center gap-3 sm:flex">
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#101A32] transition-colors hover:text-[#148F3A]"
-              >
-                <User className="h-4 w-4 stroke-[1.8] text-[#148F3A]" />
-                <span>Login</span>
-              </Link>
-              <Link
-                to="/register"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-[#148F3A] px-5 text-xs font-semibold text-white transition-all hover:bg-[#117a32] hover:shadow-[0_4px_16px_rgba(20,143,58,0.25)] active:scale-95"
-              >
-                <span>Sign Up</span>
-                <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 stroke-[2.2]" />
-              </Link>
+          {/* Desktop Navigation Links — Centered */}
+          <nav aria-label="Main navigation" className="hidden md:flex items-center">
+            <div ref={navLinksRef} className="flex items-center gap-1 sm:gap-2">
+              {navItems.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 transition-colors hover:text-[#128A50] hover:bg-[#DDF3E5]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#128A50]"
+                >
+                  {item.label}
+                </a>
+              ))}
             </div>
+          </nav>
 
-            {/* Mobile Hamburger Button */}
-            <button
-              type="button"
-              aria-label="Open navigation menu"
-              aria-expanded={isMenuOpen}
-              onClick={() => setIsMenuOpen(true)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#101A32] transition-colors hover:bg-slate-100 md:hidden"
+          {/* Desktop Actions — Login & Sign Up */}
+          <div ref={navActionsRef} className="hidden md:flex items-center gap-3">
+            <Link
+              to="/login"
+              className="px-4 py-2 text-sm font-semibold text-[#101828] transition-colors hover:text-[#128A50]"
             >
-              <Menu className="h-5 w-5" />
-            </button>
+              Login
+            </Link>
+            <Link
+              to="/register"
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[#128A50] px-5 text-sm font-semibold text-white transition-all hover:bg-[#075B38] hover:shadow-[0_4px_16px_rgba(18,138,80,0.25)] active:scale-95"
+            >
+              Sign Up
+            </Link>
           </div>
-        </header>
-      </div>
+
+          {/* Mobile Hamburger Button */}
+          <button
+            type="button"
+            aria-label="Open navigation menu"
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen(true)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+      </header>
 
       {/* ── MOBILE MENU OVERLAY ── */}
       {isMenuOpen && (
@@ -288,12 +269,12 @@ export const LandingPage: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-label="Mobile navigation"
-          className="fixed inset-0 z-[100] flex flex-col h-[100dvh] w-screen bg-white text-slate-900 px-6 py-6 md:hidden"
+          className="fixed inset-0 z-[100] flex flex-col h-[100dvh] w-screen bg-[#F5FAF7] text-slate-900 px-6 py-6 md:hidden"
         >
-          <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+          <div className="flex items-center justify-between pb-6 border-b border-slate-200">
             <a href="#top" onClick={closeMenu} className="inline-flex items-center gap-2.5">
               <AivoraLogo className="h-8 w-8" />
-              <span className="text-xl font-bold tracking-tight text-slate-900 flex items-center">
+              <span className="text-xl font-bold tracking-tight text-[#101828] flex items-center">
                 MediCure
                 <span className="ml-1 h-2 w-2 rounded-full bg-[#EAB308]" />
               </span>
@@ -302,252 +283,227 @@ export const LandingPage: React.FC = () => {
               type="button"
               aria-label="Close navigation menu"
               onClick={closeMenu}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-700"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="flex-1 py-8 flex flex-col justify-center space-y-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  onClick={closeMenu}
-                  className={`inline-flex items-center gap-3 text-xl font-bold transition-colors ${
-                    item.active ? 'text-[#148F3A]' : 'text-[#101A32] hover:text-[#148F3A]'
-                  }`}
-                >
-                  <Icon className="h-5 w-5 stroke-[2] text-[#148F3A]" />
-                  <span>{item.label}</span>
-                </a>
-              );
-            })}
+          <div className="flex-1 py-10 flex flex-col justify-center space-y-5">
+            {navItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={closeMenu}
+                className="text-2xl font-semibold text-[#101828] transition-colors hover:text-[#128A50]"
+              >
+                {item.label}
+              </a>
+            ))}
           </div>
 
-          <div className="border-t border-slate-100 pt-6 space-y-3 pb-4">
+          <div className="border-t border-slate-200 pt-6 space-y-3 pb-4">
             <Link
               to="/login"
               onClick={closeMenu}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-[#101A32] hover:bg-slate-50"
+              className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-slate-300 text-sm font-semibold text-[#101828] hover:bg-slate-100"
             >
-              <User className="h-4 w-4 text-[#148F3A]" />
-              <span>Login</span>
+              Login
             </Link>
             <Link
               to="/register"
               onClick={closeMenu}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#148F3A] text-sm font-semibold text-white shadow-md hover:bg-[#117a32]"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#128A50] text-sm font-semibold text-white hover:bg-[#075B38]"
             >
-              <span>Sign Up</span>
+              Sign Up
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
       )}
 
-      {/* ── SECTION: MAIN HERO CONTAINER ── */}
-      <main ref={heroSectionRef} className="pt-24 sm:pt-28 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="medicure-hero-container relative mx-auto max-w-[1360px] p-6 sm:p-10 lg:p-14 bg-white overflow-hidden">
-          
-          {/* Subtle curved background decorative shape (solid green accent) */}
-          <div 
-            className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full border border-[#148F3A]/10 opacity-70"
-            aria-hidden="true" 
-          />
+      {/* ── HERO SECTION ── */}
+      <main
+        ref={heroSectionRef}
+        className="relative overflow-hidden pt-28 sm:pt-32 pb-16 lg:pb-24 flex items-center min-h-[calc(100vh-80px)]"
+      >
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-8 w-full">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
 
-          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 relative z-10">
-
-            {/* Left Side: Headline, Paragraph, Buttons, Trust Indicators */}
-            <div className="flex flex-col items-start">
+            {/* Left Column — Text & CTAs */}
+            <div className="lg:col-span-6 flex flex-col items-start z-10">
               
-              {/* Modern Clinical Healthcare Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200/80 px-4 py-1.5 text-xs font-semibold text-emerald-800 mb-6">
-                <span className="h-2 w-2 rounded-full bg-[#148F3A]" />
-                <span>Modern Clinical Healthcare</span>
+              {/* Small Category Label */}
+              <div className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
+                Certified Medical Technology
               </div>
 
-              {/* Headline with "health" and "wellness" highlighted in solid green #148F3A */}
-              <h1 className="gsap-hero-title text-[clamp(36px,5vw,56px)] font-bold leading-[1.1] tracking-tight text-[#0F172A]">
-                Expert care for your <span className="text-[#148F3A]">health</span> and <span className="text-[#148F3A]">wellness</span>.
+              {/* Main Heading */}
+              <h1 className="gsap-hero-title text-4xl sm:text-5xl lg:text-[3.25rem] font-extrabold text-[#101828] leading-[1.15] tracking-tight">
+                Discover Advanced Healthcare For{' '}
+                <span className="text-[#128A50] relative inline-block">
+                  Your Wellness
+                  <span
+                    className="absolute left-0 -bottom-1 w-full h-[3.5px] bg-[#128A50] rounded-full"
+                    aria-hidden="true"
+                  />
+                </span>
               </h1>
 
-              {/* Supporting description */}
-              <p className="gsap-hero-desc mt-5 text-base sm:text-lg leading-relaxed text-slate-600 max-w-xl">
-                Personalized, comprehensive medical services designed for you and your loved ones. Experience compassionate doctors, rapid diagnostics, and connected clinical care.
+              {/* Description */}
+              <p className="gsap-hero-desc mt-5 text-base sm:text-lg text-slate-500 leading-relaxed max-w-lg">
+                Experience innovative medical technology, advanced diagnostics and reliable healthcare solutions designed around your needs.
               </p>
 
-              {/* Action Buttons: Solid Green Book an Appointment + White Get Started */}
+              {/* Two CTA Buttons */}
               <div className="gsap-hero-actions mt-8 flex flex-wrap items-center gap-4">
+                <a
+                  href="#platform"
+                  className="inline-flex h-12 items-center justify-center rounded-xl bg-[#128A50] px-7 text-sm sm:text-base font-semibold text-white shadow-xs transition-all hover:bg-[#075B38] hover:shadow-[0_6px_20px_rgba(18,138,80,0.25)] active:scale-95"
+                >
+                  Explore Platform
+                </a>
                 <Link
                   to="/register"
-                  className="inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-[#148F3A] px-7 text-sm font-semibold text-white transition-all hover:bg-[#117a32] hover:shadow-[0_6px_20px_rgba(20,143,58,0.28)] active:scale-95"
+                  className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200/90 bg-white px-7 text-sm sm:text-base font-semibold text-[#101828] shadow-xs transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95"
                 >
-                  <span>Book an Appointment</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-sm font-semibold text-[#0F172A] transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95 shadow-xs"
-                >
-                  <span>Get Started</span>
+                  Get Started
                 </Link>
               </div>
 
-              {/* Trust Indicators */}
-              <div className="gsap-hero-trust mt-10 pt-8 border-t border-slate-100 w-full flex flex-wrap items-center gap-6 sm:gap-8">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#148F3A] shrink-0 border border-emerald-100">
-                    <ShieldCheck className="h-5 w-5 text-[#148F3A]" />
-                  </div>
-                  <div>
-                    <span className="block text-sm font-bold text-[#0F172A] leading-tight">100%</span>
-                    <span className="text-xs font-medium text-slate-500">Trusted Care</span>
-                  </div>
-                </div>
-
-                <div className="hidden sm:block h-8 w-px bg-slate-200" aria-hidden="true" />
-
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#148F3A] shrink-0 border border-emerald-100">
-                    <Users className="h-5 w-5 text-[#148F3A]" />
-                  </div>
-                  <div>
-                    <span className="block text-sm font-bold text-[#0F172A] leading-tight">50K+</span>
-                    <span className="text-xs font-medium text-slate-500">Happy Patients</span>
-                  </div>
-                </div>
-
-                <div className="hidden sm:block h-8 w-px bg-slate-200" aria-hidden="true" />
-
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#148F3A] shrink-0 border border-emerald-100">
-                    <Clock className="h-5 w-5 text-[#148F3A]" />
-                  </div>
-                  <div>
-                    <span className="block text-sm font-bold text-[#0F172A] leading-tight">24/7</span>
-                    <span className="text-xs font-medium text-slate-500">Medical Support</span>
-                  </div>
-                </div>
+              {/* Social links below buttons */}
+              <div className="mt-10 pt-4 flex items-center gap-6 text-xs sm:text-sm font-semibold text-slate-400">
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 transition-colors hover:text-[#1877F2] group"
+                >
+                  <FaFacebookF className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                  <span>Facebook</span>
+                </a>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 transition-colors hover:text-[#E4405F] group"
+                >
+                  <FaInstagram className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                  <span>Instagram</span>
+                </a>
+                <a
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 transition-colors hover:text-[#1DA1F2] group"
+                >
+                  <FaTwitter className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                  <span>Twitter</span>
+                </a>
               </div>
 
             </div>
 
-            {/* Right Side: Doctor Visual + Solid Green Circle + Floating Badges + Heart Rate Card */}
-            <div className="gsap-hero-visual relative mx-auto w-full max-w-[540px]">
+            {/* Right Column — Doctor Portrait & Floating Badges */}
+            <div ref={heroVisualRef} className="lg:col-span-6 relative flex items-center justify-center gsap-hero-visual">
               
-              {/* Minimal green dotted matrix decoration */}
-              <div className="absolute -top-6 -right-6 w-24 h-24 pointer-events-none z-0" aria-hidden="true">
-                <svg className="w-full h-full text-[#148F3A]/25" viewBox="0 0 96 96" fill="currentColor">
-                  <pattern id="hero-dots-pattern" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-                    <circle cx="3" cy="3" r="1.5" />
-                  </pattern>
-                  <rect width="96" height="96" fill="url(#hero-dots-pattern)" />
-                </svg>
-              </div>
+              <div className="relative w-full max-w-[460px] sm:max-w-[500px] flex items-center justify-center">
 
-              {/* Solid green decorative circular element behind the image */}
-              <div 
-                className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-44 h-44 sm:w-60 sm:h-60 rounded-full bg-[#148F3A] z-0" 
-                aria-hidden="true"
-              />
+                {/* Soft Mint Gradient Orb behind doctor */}
+                <div
+                  className="absolute w-[360px] h-[360px] sm:w-[440px] sm:h-[440px] rounded-full bg-gradient-to-tr from-[#DDF3E5] via-[#C8EED5] to-[#E8F8EE] blur-2xl opacity-75 -z-10 pointer-events-none"
+                  aria-hidden="true"
+                />
 
-              {/* Subtle decorative curved shape */}
-              <div 
-                className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full border-2 border-[#148F3A]/20 pointer-events-none z-0" 
-                aria-hidden="true"
-              />
+                {/* Concentric Decorative Rings */}
+                <div
+                  className="absolute w-[420px] h-[420px] sm:w-[500px] sm:h-[500px] rounded-full border border-[#128A50]/15 pointer-events-none -z-10"
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute w-[500px] h-[500px] sm:w-[600px] sm:h-[600px] rounded-full border border-[#128A50]/10 pointer-events-none -z-10"
+                  aria-hidden="true"
+                />
 
-              {/* Main Doctor Image Container */}
-              <div
-                ref={heroVisualRef}
-                className="relative z-10 overflow-hidden rounded-[2.5rem] bg-white p-3 border border-slate-200/90 shadow-[0_20px_45px_-10px_rgba(15,23,42,0.08)]"
-              >
-                <div className="relative aspect-[1.08/1] overflow-hidden rounded-[2rem] bg-slate-50">
-                  {/* Doctor Image preserved without gradients */}
+                {/* 3D Floating Mint Sphere (top right) */}
+                <div
+                  className="absolute -top-3 right-4 sm:right-8 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-[#EAF8EE] via-[#CEEED8] to-[#9CD6B1] shadow-[inset_-4px_-4px_12px_rgba(7,91,56,0.15),0_12px_28px_rgba(18,138,80,0.12)] pointer-events-none z-0"
+                  aria-hidden="true"
+                />
+
+                {/* Doctor Image Container — Smooth, consistent 28px rounded corners on all four corners */}
+                <div
+                  className="relative z-10 w-full overflow-hidden border border-white/60 shadow-[0_20px_50px_rgba(18,138,80,0.06)] bg-white/40"
+                  style={{ borderRadius: '28px' }}
+                >
                   <img
                     src="/doctor-hero.jpg"
-                    alt="Healthcare professional providing expert medical care"
-                    className="h-full w-full object-cover object-[center_30%]"
+                    alt="Doctor in medical coat with stethoscope"
+                    className="w-full h-auto object-cover object-top max-h-[500px] sm:max-h-[540px] block"
+                    style={{ borderRadius: '28px' }}
                     fetchPriority="high"
                   />
-
-                  {/* Floating White Badges (Expertise, Wellness, Care) */}
-                  <div className="floating-label-badge top-5 left-5">
-                    <Stethoscope className="h-4 w-4 text-[#148F3A]" />
-                    <span>Expertise</span>
-                  </div>
-
-                  <div className="floating-label-badge top-5 right-5">
-                    <Heart className="h-4 w-4 text-[#148F3A]" />
-                    <span>Wellness</span>
-                  </div>
-
-                  <div className="floating-label-badge top-24 right-5">
-                    <Shield className="h-4 w-4 text-[#148F3A]" />
-                    <span>Care</span>
-                  </div>
-
-                  {/* Floating Heart Rate Card */}
-                  <div className="floating-heart-rate-card">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#148F3A] shrink-0 border border-emerald-100">
-                        <HeartPulse className="h-5 w-5 text-[#148F3A]" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-500">Heart Rate</span>
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#148F3A] animate-pulse" />
-                        </div>
-                        <div className="flex items-baseline gap-1 mt-0.5">
-                          <span className="text-xl font-bold text-[#0F172A]">72</span>
-                          <span className="text-xs font-medium text-slate-400">bpm</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Mini SVG Heart Rate waveform sparkline */}
-                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-4">
-                      <svg className="w-28 h-6 text-[#148F3A]" viewBox="0 0 110 24" fill="none">
-                        <path
-                          d="M2 12h20l4-7 6 15 5-11 5 7 4-4h20l4-6 5 13 4-10 4 7 4-4h20"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="text-[11px] font-semibold text-[#148F3A] bg-emerald-50 px-2 py-0.5 rounded-full">
-                        Normal
-                      </span>
-                    </div>
-                  </div>
-
                 </div>
+
+                {/* Floating Bubble 1: Phone (top-left) */}
+                <div
+                  className="absolute -left-2 sm:-left-5 top-24 z-20 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white shadow-[0_10px_25px_rgba(16,24,40,0.08)] border border-slate-100 flex items-center justify-center transition-transform hover:scale-110"
+                  title="Phone Consultation"
+                >
+                  <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-[#101828] fill-[#101828] -rotate-12" />
+                </div>
+
+                {/* Floating Bubble 2: Message (mid-left) */}
+                <div
+                  className="absolute -left-4 sm:-left-7 bottom-28 z-20 w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-white shadow-[0_10px_25px_rgba(16,24,40,0.08)] border border-slate-100 flex items-center justify-center transition-transform hover:scale-110"
+                  title="Direct Message"
+                >
+                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-[#101828] fill-[#101828]" />
+                </div>
+
+                {/* Floating Bubble 3: Video (mid-right) */}
+                <div
+                  className="absolute -right-2 sm:-right-5 top-32 z-20 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white shadow-[0_10px_25px_rgba(16,24,40,0.08)] border border-slate-100 flex items-center justify-center transition-transform hover:scale-110"
+                  title="Video Consultation"
+                >
+                  <Video className="w-6 h-6 sm:w-7 sm:h-7 text-[#101828] fill-[#101828]" />
+                </div>
+
+                {/* Floating Patient Review Card (bottom-left) */}
+                <div className="absolute left-0 sm:-left-4 bottom-6 z-30 bg-white rounded-2xl shadow-[0_12px_32px_rgba(16,24,40,0.1)] border border-slate-100 py-2.5 px-3.5 flex items-center gap-3">
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                    alt="Mh John avatar"
+                    className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-[#101828]">Mh John</div>
+                    <div className="text-amber-400 text-xs tracking-wider">★★★★★</div>
+                  </div>
+                </div>
+
+                {/* Floating Reviews Rating Card (bottom-right) */}
+                <div className="absolute -right-1 sm:-right-5 bottom-8 z-30 bg-white rounded-2xl shadow-[0_12px_32px_rgba(16,24,40,0.1)] border border-slate-100 py-3 px-5 sm:px-6 text-center">
+                  <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-500 mb-1">
+                    <Heart className="w-5 h-5 fill-red-500 text-red-500" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight leading-tight">
+                    1600+
+                  </div>
+                  <div className="text-[11px] sm:text-xs font-semibold text-slate-400 tracking-wide">
+                    Reviews
+                  </div>
+                </div>
+
               </div>
+
             </div>
 
           </div>
-
-          {/* Thin heartbeat decorative line near the bottom */}
-          <div className="mt-12 pt-6 border-t border-slate-100 w-full flex items-center justify-between text-xs text-slate-400 overflow-hidden" aria-hidden="true">
-            <svg className="h-5 w-full text-[#148F3A]/30" viewBox="0 0 900 20" fill="none" preserveAspectRatio="none">
-              <path
-                d="M0 10 H300 L310 3 L320 17 L328 5 L336 13 L342 8 L350 10 H550 L560 3 L570 17 L578 5 L586 13 L592 8 L600 10 H900"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-
         </div>
       </main>
 
-      {/* ── AI FACE SCAN SECTION ── */}
+            {/* ── AI FACE SCAN SECTION ── */}
       <section id="ai-scan" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white border-t border-slate-100">
         <div className="mx-auto max-w-[1360px]">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">

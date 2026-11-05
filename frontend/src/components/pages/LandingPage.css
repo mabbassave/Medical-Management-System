@@ -1,89 +1,10 @@
 /* ── MediCure Clean & Airy Medical Landing Page ─────────────────────── */
 
 #top {
-  background-color: #F8FAFC !important;
-  color: #0F172A !important;
+  background-color: #F5FAF7 !important;
+  color: #101828 !important;
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
   overflow-x: hidden;
-}
-
-/* ── Navbar: Sleek Centered Pill Navbar (Fixed Size at Top & On Scroll) ─────── */
-.medicure-nav-wrapper {
-  position: fixed;
-  top: 1rem;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  display: flex;
-  justify-content: center;
-  padding: 0 1rem;
-  pointer-events: none;
-}
-
-.medicure-nav-header {
-  margin-inline: auto;
-  width: min(100%, 1060px);
-  height: 64px;              /* Exact same height at top and on scroll */
-  border-radius: 9999px;     /* Sleek modern pill shape */
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-  pointer-events: auto;
-  transition:
-    box-shadow       0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color     0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Size stays 100% invariant on scroll — only subtle backdrop elevation changes */
-.medicure-nav-wrapper.scrolled .medicure-nav-header {
-  border-color: rgba(203, 213, 225, 0.95);
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.09), 0 2px 8px -1px rgba(15, 23, 42, 0.04);
-}
-
-.medicure-nav-inner {
-  height: 100%;
-  padding: 0 1rem 0 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-@media (min-width: 640px) {
-  .medicure-nav-inner {
-    padding: 0 1.25rem 0 1.75rem;
-  }
-}
-
-/* Logo & nav link styles */
-#top > div:first-child header a > span {
-  font-size: 1.25rem !important;
-  font-weight: 800 !important;
-  color: #0F172A !important;
-  letter-spacing: -0.02em !important;
-}
-
-#top > div:first-child header nav a {
-  font-size: 0.9rem !important;
-  font-weight: 500 !important;
-  color: #64748B !important;
-  transition: color 0.2s ease !important;
-  padding: 0.5rem 0.85rem !important;
-}
-
-#top > div:first-child header nav a:hover {
-  color: #16A34A !important;
-}
-
-/* ── Hero Container ────────────────────────────────────────────────── */
-.medicure-hero-container {
-  background-color: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 2.5rem;
-  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.06);
 }
 
 /* Service tags */
