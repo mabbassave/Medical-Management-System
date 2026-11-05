@@ -24,11 +24,12 @@ const createStudioEnvironment = () => {
   const context = canvas.getContext('2d');
   if (!context) return undefined;
 
+  // Soft icy-blue studio reflection with balanced contrast (prevents overexposure)
   const background = context.createLinearGradient(0, 0, 0, canvas.height);
-  background.addColorStop(0, '#c7e8d4');
-  background.addColorStop(0.38, '#697c72');
-  background.addColorStop(0.72, '#293830');
-  background.addColorStop(1, '#111814');
+  background.addColorStop(0, '#E8F2FA');
+  background.addColorStop(0.35, '#CBE1F0');
+  background.addColorStop(0.70, '#8AAEC6');
+  background.addColorStop(1, '#4B708A');
   context.fillStyle = background;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -39,9 +40,9 @@ const createStudioEnvironment = () => {
     context.fillStyle = glow;
     context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
   };
-  addSoftbox(132, 74, 94, 'rgb(238 255 239 / 0.94)');
-  addSoftbox(404, 88, 88, 'rgb(207 224 255 / 0.78)');
-  addSoftbox(252, 18, 42, 'rgb(255 255 255 / 0.72)');
+  addSoftbox(256, 25, 130, 'rgba(255, 255, 255, 0.85)');
+  addSoftbox(75, 115, 100, 'rgba(180, 215, 240, 0.5)');
+  addSoftbox(435, 95, 90, 'rgba(150, 195, 225, 0.4)');
 
   const environment = new THREE.CanvasTexture(canvas);
   environment.mapping = THREE.EquirectangularReflectionMapping;
@@ -56,11 +57,12 @@ const createTrackingTexture = () => {
   const context = canvas.getContext('2d');
   if (!context) return undefined;
 
+  // Solid green #148F3A landmark dot
   const glow = context.createRadialGradient(32, 32, 1, 32, 32, 31);
-  glow.addColorStop(0, 'rgba(244, 255, 240, 1)');
-  glow.addColorStop(0.12, 'rgba(199, 255, 190, 0.98)');
-  glow.addColorStop(0.3, 'rgba(199, 255, 190, 0.62)');
-  glow.addColorStop(1, 'rgba(199, 255, 190, 0)');
+  glow.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  glow.addColorStop(0.18, 'rgba(20, 143, 58, 0.95)');
+  glow.addColorStop(0.40, 'rgba(20, 143, 58, 0.5)');
+  glow.addColorStop(1, 'rgba(20, 143, 58, 0)');
   context.fillStyle = glow;
   context.fillRect(0, 0, 64, 64);
 
@@ -69,12 +71,17 @@ const createTrackingTexture = () => {
   return texture;
 };
 
-interface FaceScanModelProps {
+export interface FaceScanModelProps {
   followPointer?: boolean;
   normalizeSize?: boolean;
+  scaleMultiplier?: number;
 }
 
-export const FaceScanModel = ({ followPointer = false, normalizeSize = false }: FaceScanModelProps) => {
+export const FaceScanModel = ({
+  followPointer = false,
+  normalizeSize = false,
+  scaleMultiplier = 1,
+}: FaceScanModelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadError, setLoadError] = useState(false);
 
@@ -101,8 +108,8 @@ export const FaceScanModel = ({ followPointer = false, normalizeSize = false }: 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
-    renderer.setClearColor(0x000000, 0);
+    renderer.toneMappingExposure = 0.95;
+    renderer.setClearColor(0xffffff, 0);
     renderer.domElement.className = 'face-scan-model-canvas';
     renderer.domElement.setAttribute('role', 'img');
     renderer.domElement.setAttribute(
@@ -116,25 +123,26 @@ export const FaceScanModel = ({ followPointer = false, normalizeSize = false }: 
     const environmentMap = createStudioEnvironment();
     if (environmentMap) scene.environment = environmentMap;
 
-    scene.add(new THREE.HemisphereLight(0xd9f2e2, 0x101712, 1.35));
-    const keyLight = new THREE.DirectionalLight(0xf2fff5, 2.5);
-    keyLight.position.set(2.2, 2.8, 3.5);
+    // Directional sculpted lighting: realistic 3D depth, soft blue-grey shadows, no blowout
+    scene.add(new THREE.HemisphereLight(0xF0F7FC, 0x7E9EB6, 0.65));
+    const keyLight = new THREE.DirectionalLight(0xFFFFFF, 1.95);
+    keyLight.position.set(2.2, 3.0, 3.2);
     scene.add(keyLight);
-    const fillLight = new THREE.DirectionalLight(0xa7cbb3, 1.15);
-    fillLight.position.set(-2.8, 0.3, 2.4);
+    const fillLight = new THREE.DirectionalLight(0xB4D2E7, 0.65);
+    fillLight.position.set(-2.8, 0.5, 2.0);
     scene.add(fillLight);
-    const rimLight = new THREE.DirectionalLight(0xc7ffbe, 2.4);
-    rimLight.position.set(-2.8, 1.5, -2.2);
+    const rimLight = new THREE.DirectionalLight(0x9EC4DE, 0.9);
+    rimLight.position.set(-2.2, 1.8, -2.5);
     scene.add(rimLight);
-    const edgeLight = new THREE.DirectionalLight(0x7fe4a1, 0.8);
-    edgeLight.position.set(2, -1, -1.5);
-    scene.add(edgeLight);
+    const bounceLight = new THREE.DirectionalLight(0x8EB0C8, 0.35);
+    bounceLight.position.set(0, -2.2, 1.2);
+    scene.add(bounceLight);
 
     const trackingTexture = createTrackingTexture();
     const trackingMaterial = trackingTexture
       ? new THREE.SpriteMaterial({
           map: trackingTexture,
-          color: '#CFE0FF',
+          color: '#148F3A',
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
@@ -161,10 +169,12 @@ export const FaceScanModel = ({ followPointer = false, normalizeSize = false }: 
             `#include <emissivemap_fragment>
             float aivoraScanDistance = abs(vAivoraFaceY - uFaceScanY);
             float aivoraScanLine = exp(-aivoraScanDistance * aivoraScanDistance * 18000.0);
-            totalEmissiveRadiance += vec3(0.58, 1.0, 0.62) * aivoraScanLine * 0.72;`
+            float aivoraGlow = exp(-aivoraScanDistance * aivoraScanDistance * 2200.0);
+            totalEmissiveRadiance += vec3(0.08, 0.56, 0.23) * aivoraScanLine * 0.75;
+            totalEmissiveRadiance += vec3(0.04, 0.35, 0.14) * aivoraGlow * 0.35;`
           );
       };
-      material.customProgramCacheKey = () => 'aivora-face-scan-v1';
+      material.customProgramCacheKey = () => 'medicure-face-porcelain-v3';
     };
 
     const rotationTarget = { x: 0, y: 0 };
@@ -307,7 +317,7 @@ export const FaceScanModel = ({ followPointer = false, normalizeSize = false }: 
         const center = modelBounds.getCenter(new THREE.Vector3());
         modelBoundsSize.copy(modelBounds.getSize(new THREE.Vector3()));
         const centeredBounds = modelBounds.clone().translate(center.clone().negate());
-        const scale = 1.15 / modelBoundsSize.y;
+        const scale = (1.15 * scaleMultiplier) / modelBoundsSize.y;
         loadedModel.position.sub(center);
         pivot.scale.setScalar(scale);
         pivot.add(loadedModel);
@@ -323,15 +333,18 @@ export const FaceScanModel = ({ followPointer = false, normalizeSize = false }: 
           const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material];
           const isEye = object.name.toLowerCase().includes('eye');
           const refinedMaterials = sourceMaterials.map((sourceMaterial) => {
+            // Glossy porcelain white with visible icy-blue depth, sculpted anatomical shading
             const material = new THREE.MeshPhysicalMaterial({
-              color: isEye ? '#d5e7dc' : '#718077',
-              emissive: isEye ? '#14251a' : '#101a14',
-              emissiveIntensity: isEye ? 0.1 : 0.22,
-              metalness: 0.04,
-              roughness: isEye ? 0.28 : 0.52,
-              clearcoat: isEye ? 0.48 : 0.3,
-              clearcoatRoughness: isEye ? 0.22 : 0.42,
-              envMapIntensity: isEye ? 0.9 : 0.68,
+              color: isEye ? '#B8D0E0' : '#D0E2EE',
+              emissive: 0x000000,
+              emissiveIntensity: 0,
+              metalness: 0.03,
+              roughness: isEye ? 0.12 : 0.20,
+              clearcoat: 0.95,
+              clearcoatRoughness: 0.07,
+              ior: 1.50,
+              reflectivity: 0.52,
+              envMapIntensity: 0.45,
             });
             addFaceScanShader(material);
             sourceMaterial.dispose();
@@ -405,10 +418,21 @@ export const FaceScanModel = ({ followPointer = false, normalizeSize = false }: 
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [followPointer, normalizeSize]);
+  }, [followPointer, normalizeSize, scaleMultiplier]);
 
   return (
     <div ref={containerRef} className="face-scan-model">
+      {/* Subtle circular scanning ring positioned strictly behind the 3D face */}
+      <div className="face-scan-radar-circle" aria-hidden="true" />
+
+      {/* Symmetrical 4 green scanning corner brackets aligned outside the face boundaries */}
+      <div className="face-scan-frame" aria-hidden="true">
+        <div className="face-scan-bracket-tl" />
+        <div className="face-scan-bracket-tr" />
+        <div className="face-scan-bracket-bl" />
+        <div className="face-scan-bracket-br" />
+      </div>
+
       {loadError && (
         <p className="face-scan-model-error" role="alert">
           The 3D face model could not be loaded.

@@ -1,118 +1,125 @@
+/* ── MediCure Clean Face Scan Modal ───────────────────────────────── */
+
 .face-scan-overlay {
   overflow: hidden;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .face-scan-dialog {
-  max-height: calc(100dvh - 1rem);
+  max-height: calc(100dvh - 2rem);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: rgb(207 224 255 / 0.35) transparent;
   scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 1.75rem !important;
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.05) !important;
 }
 
 .face-scan-header {
   min-height: 0;
+  border-bottom: 1px solid #F1F5F9 !important;
+}
+
+.face-scan-dialog :is(h2, p, label) {
+  color: #0F172A !important;
+}
+
+.face-scan-dialog .face-scan-subtitle {
+  color: #64748B !important;
 }
 
 .face-scan-preview-wrap {
   display: flex;
   flex: 0 0 auto;
   justify-content: center;
-  padding-block: 0.85rem;
+  padding-block: 0.75rem;
 }
 
 .face-scan-viewport {
-  width: min(100%, 56dvh, 32rem);
+  width: min(100%, 52dvh, 30rem);
   max-width: 100%;
   height: auto;
   min-height: 0;
   aspect-ratio: 4 / 3;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 1.25rem !important;
+  background: #0F172A !important;
+  box-shadow: inset 0 2px 6px rgba(15, 23, 42, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Face-oval guide ───────────────────────────────────────────────── */
+.face-scan-oval {
+  position: absolute;
+  width: 46%;
+  aspect-ratio: 3 / 4;
+  border-radius: 50%;
+  border: 2px solid rgba(52, 211, 153, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(52, 211, 153, 0.15),
+    inset 0 0 0 1px rgba(52, 211, 153, 0.08);
+  pointer-events: none;
+}
+
+/* ── Animated horizontal scan line ────────────────────────────────── */
+.face-scan-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(52, 211, 153, 0.0) 10%,
+    rgba(52, 211, 153, 0.9) 50%,
+    rgba(52, 211, 153, 0.0) 90%,
+    transparent 100%
+  );
+  box-shadow: 0 0 8px 2px rgba(52, 211, 153, 0.35);
+  pointer-events: none;
+  animation: face-scan-sweep 2.6s ease-in-out infinite;
+}
+
+@keyframes face-scan-sweep {
+  0%   { top: 20%; opacity: 0; }
+  8%   { opacity: 1; }
+  50%  { top: 78%; opacity: 1; }
+  92%  { opacity: 1; }
+  100% { top: 20%; opacity: 0; }
+}
+
+.face-scan-reticle {
+  pointer-events: none;
 }
 
 .face-scan-actions button {
   min-width: 0;
 }
 
-/* Face authentication keeps its existing consent and capture flow, with emerald styling. */
-.face-scan-dialog { border-color:#193C2C!important;border-radius:18px!important;background:linear-gradient(145deg,#0B2119,#061510)!important;color:#F4FFF7!important;box-shadow:0 25px 70px rgb(0 0 0 / .65),0 0 30px rgb(53 240 120 / .08)!important; }
-.face-scan-dialog .face-scan-header { border-color:#193C2C!important; }
-.face-scan-dialog :is(h2,p,label) { color:#F4FFF7!important; }
-.face-scan-dialog .text-white\/65,.face-scan-dialog .text-white\/70,.face-scan-dialog .text-white\/60 { color:#A5B9AD!important; }
-.face-scan-dialog .text-\[\#56E8F2\],.face-scan-dialog .bg-\[\#56E8F2\] { color:#8CFFAC!important;background-color:#35F078!important; }
-.face-scan-dialog button { border-color:#193C2C!important; }
-.face-scan-dialog input[type=checkbox] { accent-color:#35F078; }
-.face-scan-dialog [role=alert],.face-scan-dialog [role=status] { border-color:#193C2C!important;background:#0B2119!important;color:#DCEBE0!important; }
-.face-scan-dialog .face-scan-viewport { border-color:#193C2C!important;background:#020A08!important; }
-
 @media (max-height: 640px) {
   .face-scan-viewport {
-    width: min(100%, 48dvh, 28rem);
+    width: min(100%, 46dvh, 26rem);
   }
 
   .face-scan-preview-wrap {
-    padding-block: 0.6rem;
+    padding-block: 0.5rem;
   }
 }
 
 @media (max-width: 639px) {
   .face-scan-dialog {
-    border-radius: 1.25rem;
+    border-radius: 1.25rem !important;
   }
 
   .face-scan-viewport {
-    width: min(100%, 56dvh, 32rem);
+    width: min(100%, 52dvh, 28rem);
   }
-}
-
-@media (max-width: 639px) and (max-height: 640px) {
-  .face-scan-viewport {
-    width: min(100%, 42dvh, 24rem);
-  }
-}
-
-.face-scan-dialog {
-  background: linear-gradient(145deg, #252728, #1D201F) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55) !important;
-}
-
-.face-scan-dialog .face-scan-header,
-.face-scan-dialog button {
-  border-color: var(--color-border) !important;
-}
-
-.face-scan-dialog :is(h2, p, label) {
-  color: var(--color-text-primary) !important;
-}
-
-.face-scan-dialog .text-white\/65,
-.face-scan-dialog .text-white\/70,
-.face-scan-dialog .text-white\/60 {
-  color: var(--color-text-secondary) !important;
-}
-
-.face-scan-dialog .text-\[\#56E8F2\] {
-  color: #70CAA7 !important;
-}
-
-.face-scan-dialog .bg-\[\#56E8F2\] {
-  background-color: var(--color-primary) !important;
-}
-
-.face-scan-dialog input[type="checkbox"] {
-  accent-color: var(--color-primary);
-}
-
-.face-scan-dialog [role="alert"],
-.face-scan-dialog [role="status"] {
-  background: var(--color-surface-elevated) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-}
-
-.face-scan-dialog .face-scan-viewport {
-  background: #1D201F !important;
-  border-color: var(--color-border) !important;
 }

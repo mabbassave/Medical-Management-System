@@ -356,6 +356,26 @@ describe('OAuth transaction and identity-token verification', () => {
     );
   });
 
+  it('allows starting Google OAuth without role for login flow', () => {
+    const response = {
+      cookie: vi.fn(),
+      redirect: vi.fn(),
+    } as unknown as Response;
+    const request = {
+      get: () => undefined,
+      query: { flow: 'login' },
+    } as unknown as Request;
+
+    new OAuthController().start('google')(request, response);
+
+    expect(response.cookie).toHaveBeenCalled();
+    expect(response.redirect).toHaveBeenCalledWith(
+      302,
+      expect.stringContaining('accounts.google.com')
+    );
+  });
+
+
   it('reports provider cancellation without exchanging an authorization code', async () => {
     const controller = new OAuthController();
     const transaction = createOAuthTransaction('http://localhost:5173', 'patient');

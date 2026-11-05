@@ -603,28 +603,24 @@ export class AuthController {
         faceEnrollmentStatus: 'enrolled',
         faceConsentAt: { $type: 'date' },
       });
-      const correctlyMappedUsers = matchingUsers.filter((user) =>
-        matchingFaces.some(
-          ({ userId }) => user._id.toString() === userId
-        )
-      );
-      const distinctUsers = new Map(correctlyMappedUsers.map((user) => [user._id.toString(), user]));
-      if (
-        correctlyMappedUsers.length !== matchingFaces.length ||
-        distinctUsers.size !== 1
-      ) {
+
+      // Build a map of userId -> user for quick lookup
+      const matchingUsersById = new Map(matchingUsers.map((u) => [u._id.toString(), u]));
+
+      // Filter matchingFaces to only those with a valid active enrolled user
+      const validMatches = matchingFaces.filter(({ userId }) => matchingUsersById.has(userId));
+
+      if (validMatches.length === 0) {
         throw new FaceVerificationError(
           401,
-          correctlyMappedUsers.length !== matchingFaces.length
-            ? 'The matched face is not linked to an active enrollment. Sign in with your password and enroll again.'
-            : 'More than one enrolled account matched this face. Sign in with your password and contact support.',
-          correctlyMappedUsers.length !== matchingFaces.length
-            ? 'MATCHED_ACCOUNT_UNAVAILABLE'
-            : 'AMBIGUOUS_FACE_MATCH'
+          'The matched face is not linked to an active enrollment. Sign in with your password and enroll again.',
+          'MATCHED_ACCOUNT_UNAVAILABLE'
         );
       }
 
-      const user = distinctUsers.values().next().value;
+      // Pick the best match: highest similarity score
+      const bestMatch = validMatches[0]; // Already sorted descending by similarity
+      const user = matchingUsersById.get(bestMatch.userId);
       if (
         !user ||
         !['patient', 'doctor'].includes(user.role) ||
@@ -653,6 +649,7 @@ export class AuthController {
       res.status(200).json({
         success: true,
         verified: true,
+        token,
         user: {
           id: user._id.toString(),
           username: user.username,

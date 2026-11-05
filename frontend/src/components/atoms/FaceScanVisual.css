@@ -1,0 +1,66 @@
+/* ── MediCure 3D Medical Face Scan Visual ──────────────────────────────── */
+
+.face-scan-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  background-color: #CBEAE5;
+  background: radial-gradient(ellipse 70% 65% at 50% 45%, #EAF8F4 0%, #D4F1E8 52%, #C2E8DC 100%);
+  border-radius: inherit;
+}
+
+/* Faint medical cad/telemetry grid overlay */
+.face-scan-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(140, 205, 185, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(140, 205, 185, 0.35) 1px, transparent 1px);
+  background-size: 36px 36px;
+  background-position: center center;
+  mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, #000 65%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, #000 65%, transparent 100%);
+  z-index: 1;
+}
+
+/* 3D Transform Stage */
+.face-scan-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+  z-index: 2;
+}
+
+.face-scan-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Head image element */
+.face-scan-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  display: block;
+}
+

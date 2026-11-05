@@ -13,7 +13,7 @@ export const beginOAuth = (
   }
 
   const base = apiBaseUrl.replace(/\/+$/, '');
-  const url = new URL(`${base}/auth/${provider}`);
+  const url = new URL(`${base}/auth/${provider}`, window.location.origin);
   if (role) {
     url.searchParams.set('role', role);
   }

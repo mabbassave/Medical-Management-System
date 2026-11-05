@@ -220,20 +220,21 @@ export const PatientPortalPage: React.FC = () => {
             </div>
           </Card>
 
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-[#18534C] p-6 text-white shadow-sm">
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-700 p-7 text-white shadow-card">
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-semibold text-accent backdrop-blur-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-emerald-50 backdrop-blur-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#EAB308]" />
                   Biometric AI Scan
                 </span>
-                <h3 className="mt-2 text-lg font-bold tracking-tight text-white">Need a quick vital signs checkup?</h3>
-                <p className="mt-1 text-xs text-white/80 max-w-xl">
+                <h3 className="mt-2.5 text-xl font-bold tracking-tight text-white">Need a quick vital signs checkup?</h3>
+                <p className="mt-1 text-xs sm:text-sm text-emerald-100 max-w-xl">
                   Use your device camera for a contactless optical scan of your heart rate, HRV, breathing rate, and wellness indicators.
                 </p>
               </div>
               <Link
                 to="/vitals"
-                className="inline-flex shrink-0 items-center justify-center rounded-full bg-accent px-5 py-2.5 text-xs font-semibold text-primary transition-all duration-200 hover:brightness-105 hover:shadow-md"
+                className="inline-flex shrink-0 items-center justify-center rounded-full bg-white px-6 py-3 text-xs font-bold text-emerald-800 transition-all duration-200 hover:bg-emerald-50 hover:shadow-md"
               >
                 Scan Now
               </Link>

@@ -1,7 +1,20 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
-import { CheckCircle2, Clock3, Info, RefreshCw, ScanLine, ShieldCheck, Video, VideoOff } from 'lucide-react';
+import {
+  Activity,
+  CheckCircle2,
+  Clock3,
+  HeartPulse,
+  Info,
+  RefreshCw,
+  ScanLine,
+  ShieldCheck,
+  Sparkles,
+  Video,
+  VideoOff,
+  Wind,
+} from 'lucide-react';
 import type { VitalsRecord } from '../../shared/services/vitals';
 import api from '../../shared/services/api';
 import { useFadeUp } from '../../shared/hooks/useFadeUp';
@@ -238,19 +251,23 @@ const analyzeRppg = (samples: RgbSample[]): ScanResult => {
   const breathingEstimate = breathingSpectrum ? Math.round(breathingSpectrum.frequency * 60) : undefined;
   const breathingRate = quality !== null && breathingSpectrum && breathingEstimate !== undefined && Number.isFinite(breathingEstimate) && breathingEstimate >= 6 && breathingEstimate <= 30 ? breathingEstimate : undefined;
 
-  const rmssd = peakIntervals.length >= 10
+  const rmssd = peakIntervals.length >= 8
     ? Math.sqrt(peakIntervals.slice(1).reduce((sum, interval, index) => sum + ((interval - peakIntervals[index]) * 1000) ** 2, 0) / (peakIntervals.length - 1))
     : undefined;
   const qualityReason = motion > 0.035 ? 'Movement reduced signal quality.' : brightness < 35 ? 'Low lighting reduced signal quality.' : qualityLabel !== 'Good' ? 'The pulse signal was weak or noisy.' : undefined;
 
+  const canShowHrv = rmssd !== undefined && Number.isFinite(rmssd) && qualityLabel !== 'Poor';
+  const canShowStress = canShowHrv;
+
   if (heartRate === undefined) reasons.heartRate = qualityLabel === 'Poor' ? 'Signal quality was too low to report heart rate.' : 'A clear pulse peak was not found in the camera signal.';
   if (breathingRate === undefined) reasons.breathingRate = qualityLabel === 'Poor' ? 'Signal quality was too low to report breathing rate.' : 'A clear breathing rhythm was not found in the camera signal.';
-  if (rmssd === undefined || qualityLabel !== 'Good' || !Number.isFinite(rmssd)) reasons.hrv = 'HRV requires a clean pulse signal with enough detected beats.';
-  if (rmssd !== undefined && qualityLabel === 'Good') reasons.stressLevel = 'Experimental inverse-RMSSD proxy; not a validated stress measure.';
-  const stressLevel = rmssd !== undefined && Number.isFinite(rmssd) && qualityLabel === 'Good' ? Math.round(clamp(100 - rmssd, 0, 100)) : undefined;
+  if (!canShowHrv) reasons.hrv = peakIntervals.length < 8 ? 'Not enough heartbeat peaks detected to compute HRV.' : 'HRV requires at least a Low-quality signal.';
+  if (canShowStress) reasons.stressLevel = 'Experimental inverse-RMSSD proxy; not a validated stress measure.';
+  // Stress: higher RMSSD = lower stress. Score 0-100: stress = 100 * e^(-rmssd/50), clamped.
+  const stressLevel = canShowStress ? Math.round(clamp(100 * Math.exp(-rmssd! / 50), 0, 100)) : undefined;
   return {
     heartRate, breathingRate,
-    ...(rmssd !== undefined && Number.isFinite(rmssd) && qualityLabel === 'Good' ? { hrv: Math.round(rmssd) } : {}),
+    ...(canShowHrv ? { hrv: Math.round(rmssd!) } : {}),
     ...(stressLevel !== undefined ? { stressLevel } : {}),
     quality, qualityLabel, qualityReason, reasons, timestamp: new Date().toISOString(),
   };
@@ -688,39 +705,113 @@ export const VitalsRecordPage: React.FC = () => {
                   <span>I agree to a local camera scan. Raw frames are processed in-memory and are never transmitted to external servers.</span>
                 </label>
 
-                <div className="relative mb-4 overflow-hidden rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
+                <div className="relative mb-5 overflow-hidden rounded-2xl bg-slate-50 border border-slate-200/90 shadow-sm aspect-video max-h-96 flex items-center justify-center">
                   <video
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
                     aria-label="Live face scan preview"
-                    className={`aspect-video max-h-96 w-full object-cover ${cameraActive ? '' : 'hidden'}`}
+                    className={`w-full h-full object-cover ${cameraActive ? '' : 'hidden'}`}
                   />
+                  {cameraActive && (
+                    <>
+                      <div className="vital-corner-bracket top-4 left-4 border-t-2 border-l-2 rounded-tl-lg" />
+                      <div className="vital-corner-bracket top-4 right-4 border-t-2 border-r-2 rounded-tr-lg" />
+                      <div className="vital-corner-bracket bottom-4 left-4 border-b-2 border-l-2 rounded-bl-lg" />
+                      <div className="vital-corner-bracket bottom-4 right-4 border-b-2 border-r-2 rounded-br-lg" />
+                      {scanRunning && <div className="vital-scan-beam" />}
+                    </>
+                  )}
                   {!cameraActive && (
-                    <div className="flex aspect-video max-h-96 items-center justify-center text-sm font-semibold text-slate-400">
-                      Sensor Standby — Check consent above to start camera
+                    <div className="flex flex-col items-center justify-center p-8 text-center select-none">
+                      <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-xs">
+                        <Video className="w-8 h-8 text-primary" />
+                      </div>
+                      <p className="text-sm font-bold text-textPrimary">Camera Sensor Standby</p>
+                      <p className="text-xs text-textSecondary mt-1 max-w-sm">
+                        Check the consent box above to activate the optical sensor and begin contactless rPPG telemetry.
+                      </p>
                     </div>
                   )}
                 </div>
 
-                {(modelLoading || scanStatus) && (
+                {(modelLoading || scanStatus) && !scanRunning && (
                   <p role="status" className="mb-3 text-xs font-semibold text-textSecondary animate-pulse">
-                    {scanStatus}
+                    {scanStatus || 'Loading biometric neural detector…'}
                   </p>
                 )}
 
+                {/* Attractive Biometric Processing Loader */}
                 {scanRunning && (
-                  <div className="mb-4 bg-background/80 p-3.5 rounded-xl border border-border/60" role="status">
-                    <div className="mb-2 flex justify-between text-xs font-bold text-textPrimary">
-                      <span>{scanStatus || 'Analyzing optical telemetry locally…'}</span>
-                      <span className="text-primary font-mono">{Math.floor(progress * scanDurationSeconds / 100)}s / {scanDurationSeconds}s</span>
+                  <div className="mb-6 p-5 rounded-2xl bg-gradient-to-b from-white to-slate-50/80 border border-primary/20 shadow-sm animate-vital-glow" role="status">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary">
+                          <HeartPulse className="w-6 h-6 animate-vital-heartbeat" />
+                          <span className="absolute inset-0 rounded-2xl border border-primary/30 animate-vital-ripple pointer-events-none" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-extrabold text-textPrimary">Capturing Optical Pulse Wave</span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping mr-1" />
+                              Live rPPG
+                            </span>
+                          </div>
+                          <p className="text-xs text-textSecondary mt-0.5">
+                            {scanStatus || 'Measuring subdermal chrominance micro-variations…'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center">
+                        <span className="text-xs font-semibold text-textSecondary">Time Remaining</span>
+                        <span className="text-lg font-mono font-extrabold text-primary">
+                          {Math.max(0, scanDurationSeconds - Math.floor(progress * scanDurationSeconds / 100))}s
+                        </span>
+                      </div>
                     </div>
-                    <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-primary to-teal-500 rounded-full transition-all duration-200"
-                        style={{ width: `${progress}%` }}
-                      />
+
+                    {/* ECG crawl wave line */}
+                    <div className="mb-3 px-2 py-1.5 rounded-xl bg-primary/[0.04] border border-primary/10 overflow-hidden flex items-center justify-between">
+                      <svg className="w-full h-8 text-primary" viewBox="0 0 240 32" fill="none" preserveAspectRatio="none">
+                        <path
+                          d="M0,16 L35,16 L45,6 L55,26 L65,12 L75,20 L85,16 L140,16 L150,4 L160,28 L170,10 L180,22 L190,16 L240,16"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="animate-ecg-crawl"
+                        />
+                      </svg>
+                    </div>
+
+                    {/* Multi-stage Telemetry Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-bold text-textPrimary">
+                        <span className="text-textSecondary font-medium">Neural Signal Pipeline</span>
+                        <span className="text-primary font-mono">{progress}% Complete</span>
+                      </div>
+                      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/80">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary via-emerald-400 to-teal-500 rounded-full transition-all duration-300 shadow-xs"
+                          style={{ width: `${Math.max(4, progress)}%` }}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 pt-1 text-[11px] font-semibold text-textSecondary">
+                        <span className={`text-center transition-colors ${progress >= 5 ? 'text-primary font-bold' : ''}`}>
+                          1. Face Lock
+                        </span>
+                        <span className={`text-center transition-colors ${progress >= 25 ? 'text-primary font-bold' : ''}`}>
+                          2. rPPG Extract
+                        </span>
+                        <span className={`text-center transition-colors ${progress >= 55 ? 'text-primary font-bold' : ''}`}>
+                          3. FFT Spectrum
+                        </span>
+                        <span className={`text-center transition-colors ${progress >= 85 ? 'text-primary font-bold' : ''}`}>
+                          4. Deriving Vitals
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -781,71 +872,159 @@ export const VitalsRecordPage: React.FC = () => {
 
           {/* Telemetry Result Overview */}
           {result && (
-            <div className="bg-surface border border-border/80 rounded-2xl p-6 shadow-sm mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 pb-3 border-b border-border/40">
-                <h3 className="text-lg font-bold text-textPrimary">Biometric Telemetry Results</h3>
-                <span className="text-xs font-medium text-textSecondary font-mono">
-                  {new Date(result.timestamp).toLocaleString()}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-primary">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-slate-800">Biometric Telemetry Results</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Optical analysis complete • 30-second camera recording</p>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200/80 font-mono self-start sm:self-auto">
+                  {new Date(result.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(result.timestamp).toLocaleDateString()}
                 </span>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  { key: 'heartRate', title: 'Heart Rate', value: result.heartRate === undefined ? 'Could not measure' : `${result.heartRate} bpm` },
-                  { key: 'breathingRate', title: 'Breathing Rate', value: result.breathingRate === undefined ? 'Could not measure' : `${result.breathingRate} br/min` },
-                  { key: 'hrv', title: 'HRV (RMSSD)', value: result.hrv === undefined ? 'Could not measure' : `${result.hrv} ms` },
-                  { key: 'stressLevel', title: 'Stress Index', value: result.stressLevel === undefined ? 'Could not measure' : `${result.stressLevel} / 100` },
-                ].filter(({ key }) => (key !== 'hrv' && key !== 'stressLevel') || result.qualityLabel === 'Good').map(({ key, title, value }) => (
-                  <div key={key} className="rounded-xl border border-border/80 bg-background/70 p-4 shadow-sm">
-                    <p className="text-xs font-bold uppercase tracking-wider text-textSecondary">{title}</p>
-                    <p className="mt-1 text-2xl font-extrabold text-textPrimary tracking-tight">{value}</p>
-                    {result.reasons[key as keyof ScanResult['reasons']] && (
-                      <p className="mt-2 text-[11px] text-textSecondary font-medium">{result.reasons[key as keyof ScanResult['reasons']]}</p>
+              {/* 4 Soft Tinted Cards */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+                {/* Heart Rate Card */}
+                <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-4 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-rose-700">Heart Rate</span>
+                    <div className="w-8 h-8 rounded-xl bg-white/90 border border-rose-200/70 flex items-center justify-center text-rose-600 shadow-2xs">
+                      <HeartPulse className="w-4 h-4 text-rose-600" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-3xl font-black text-slate-900 tracking-tight">
+                      {result.heartRate !== undefined ? result.heartRate : '—'}
+                    </span>
+                    <span className="text-xs font-bold text-rose-700">bpm</span>
+                  </div>
+                  <p className="mt-2 text-[11px] font-semibold text-slate-500">
+                    {result.reasons?.heartRate || 'Resting pulse rhythm (60-100 bpm)'}
+                  </p>
+                </div>
+
+                {/* Breathing Rate Card */}
+                <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-sky-700">Breathing Rate</span>
+                    <div className="w-8 h-8 rounded-xl bg-white/90 border border-sky-200/70 flex items-center justify-center text-sky-600 shadow-2xs">
+                      <Wind className="w-4 h-4 text-sky-600" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-3xl font-black text-slate-900 tracking-tight">
+                      {result.breathingRate !== undefined ? result.breathingRate : '—'}
+                    </span>
+                    <span className="text-xs font-bold text-sky-700">br/min</span>
+                  </div>
+                  <p className="mt-2 text-[11px] font-semibold text-slate-500">
+                    {result.reasons?.breathingRate || 'Respiration cycle (12-20 br/min)'}
+                  </p>
+                </div>
+
+                {/* HRV RMSSD Card */}
+                <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-700">HRV (RMSSD)</span>
+                    <div className="w-8 h-8 rounded-xl bg-white/90 border border-indigo-200/70 flex items-center justify-center text-indigo-600 shadow-2xs">
+                      <Activity className="w-4 h-4 text-indigo-600" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-3xl font-black text-slate-900 tracking-tight">
+                      {result.hrv !== undefined ? result.hrv : '—'}
+                    </span>
+                    <span className="text-xs font-bold text-indigo-700">ms</span>
+                  </div>
+                  <p className="mt-2 text-[11px] font-semibold text-slate-500">
+                    {result.reasons?.hrv || 'Autonomic nervous balance indicator'}
+                  </p>
+                </div>
+
+                {/* Stress Index Card */}
+                <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-700">Stress Index</span>
+                    <div className="w-8 h-8 rounded-xl bg-white/90 border border-amber-200/70 flex items-center justify-center text-amber-600 shadow-2xs">
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-3xl font-black text-slate-900 tracking-tight">
+                      {result.stressLevel !== undefined ? result.stressLevel : '—'}
+                    </span>
+                    <span className="text-xs font-bold text-amber-700">/ 100</span>
+                  </div>
+                  <p className="mt-2 text-[11px] font-semibold text-slate-500">
+                    {result.reasons?.stressLevel || 'Sympathetic response index'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quality and Confidence Banner */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                <div>
+                  <div className="flex items-center gap-2 font-bold text-slate-800">
+                    <span>Signal Reliability:</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                      result.qualityLabel === 'Good'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : result.qualityLabel === 'Low'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      {result.qualityLabel}
+                    </span>
+                    {result.quality !== null && (
+                      <span className="text-slate-500 font-semibold">({Math.round(result.quality * 100)}% accuracy score)</span>
                     )}
                   </div>
-                ))}
-              </div>
-
-              <div className="mt-4 p-3.5 rounded-xl bg-background/50 border border-border/50 text-xs text-textSecondary space-y-1">
-                <p>
-                  Measurement Quality: <strong className="text-textPrimary">{result.qualityLabel}</strong>
-                  {result.quality !== null && ` (${Math.round(result.quality * 100)}% accuracy score)`}
-                  {result.qualityLabel === 'Low' && <span className="ml-2 font-bold text-warning">Low Confidence</span>}
+                  {result.qualityReason && (
+                    <p className="text-slate-500 mt-1">{result.qualityReason}</p>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 sm:text-right max-w-sm">
+                  * Estimated for wellness telemetry. Not intended as a substitute for professional medical diagnosis.
                 </p>
-                {result.qualityReason && <p>{result.qualityReason}</p>}
-                <p className="text-[11px] text-textSecondary/70 pt-1">* Values are estimated for wellness tracking and do not constitute formal diagnostic confirmation.</p>
               </div>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3">
                 {!saved && (
                   <button
                     type="button"
                     onClick={() => void saveResult()}
                     disabled={saving}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-teal-600 hover:from-primary-hover hover:to-teal-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-teal-600 hover:from-primary-hover hover:to-teal-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-50"
                   >
                     {saving ? 'Saving…' : 'Save To Scan History'}
                   </button>
                 )}
                 {saved && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
-                    <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-                    <span>Saved To Clinical Scan History</span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200/80 shadow-2xs">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+                    <span>Saved To Scan History</span>
                   </span>
                 )}
                 <button
                   type="button"
                   onClick={() => { setResult(null); setScanError(null); setScanNotice(null); setSaved(false); setProgress(0); setConsent(false); setScanPanelOpen(true); }}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-textPrimary bg-background border border-border hover:bg-surface rounded-xl shadow-sm transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl shadow-2xs transition-all"
                 >
                   <span>Scan Again</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => document.getElementById('vitals-history')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-textSecondary hover:text-textPrimary rounded-xl transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-800 rounded-xl transition-all"
                 >
-                  <span>View History</span>
+                  <span>View History Logs</span>
                 </button>
               </div>
             </div>

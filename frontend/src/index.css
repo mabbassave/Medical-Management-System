@@ -2,41 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Medivanta dark clinical palette ──────────────────────────────────── */
+/* ── MediCure Clean Medical Palette (Clean White, Soft Green & Soft Yellow) ── */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --color-primary: #18A77B;
-  --color-primary-hover: #128B67;
-  --color-accent: #18A77B;
+  --color-primary: #16A34A;
+  --color-primary-hover: #15803D;
+  --color-accent: #EAB308;
+  --color-yellow: #EAB308;
 
-  --color-bg: #252728;
-  --color-surface: #2B2D2D;
-  --color-surface-elevated: #333636;
-  --color-surface-card: #2B2D2D;
-  --color-surface-hover: #393C3C;
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-card: #FFFFFF;
+  --color-surface-hover: #F1F5F9;
+  --color-surface-sunken: #F8FAFC;
 
-  --color-border: rgba(226, 222, 204, 0.16);
-  --color-border-light: rgba(226, 222, 204, 0.1);
-  --color-border-glow: rgba(24, 167, 123, 0.25);
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
+  --color-border-muted: #CBD5E1;
 
-  --color-text-primary: #F0EEE6;
-  --color-text-secondary: #C0BEB5;
-  --color-text-muted: #96968F;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
 
-  --color-kpi-patients: #18A77B;
-  --color-kpi-appointments: #2563EB;
+  --color-kpi-patients: #16A34A;
+  --color-kpi-appointments: #0284C7;
   --color-kpi-doctors: #7C3AED;
-  --color-kpi-alerts: #DC2626;
+  --color-kpi-alerts: #EF4444;
 
-  --color-success: #059669;
-  --color-warning: #D97706;
-  --color-danger: #DC2626;
-  --color-info: #2563EB;
+  --color-success: #16A34A;
+  --color-warning: #EAB308;
+  --color-danger: #EF4444;
+  --color-info: #0284C7;
 
-  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.18);
-  --shadow-card-hover: 0 14px 32px rgba(0, 0, 0, 0.28);
-  --shadow-glow: 0 0 20px rgba(24, 167, 123, 0.2);
+  --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  --shadow-card-hover: 0 20px 40px -10px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
 }
 
 /* ── Base Resets ──────────────────────────────────────────────────── */
@@ -70,16 +71,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body[class*="bg-[#F"],
-body[class*="bg-white"] {
-  background-color: var(--color-bg) !important;
-}
-
-body[class*="text-[#0F"],
-body[class*="text-[#111"] {
-  color: var(--color-text-primary) !important;
-}
-
 #root {
   min-height: 100vh;
   min-height: 100dvh;
@@ -94,23 +85,24 @@ body[class*="text-[#111"] {
   letter-spacing: -0.01em;
 }
 
-/* ── Custom Slate Scrollbar ───────────────────────────────────────── */
+/* ── Custom Light Scrollbar ───────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #66675F;
+  background: #CBD5E1;
   border-radius: 9999px;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8D8D83;
+  background: #94A3B8;
 }
 
 /* ── Focus Rings ─────────────────────────────────────────────────── */
@@ -121,8 +113,8 @@ body[class*="text-[#111"] {
 
 /* ── Selection Highlight ─────────────────────────────────────────── */
 ::selection {
-  background: rgba(24, 167, 123, 0.22);
-  color: #71D9B6;
+  background: #DCFCE7;
+  color: #14532D;
 }
 
 /* ── Clean Table Styling ─────────────────────────────────────────── */
@@ -135,9 +127,9 @@ table {
 th {
   font-weight: 600;
   color: var(--color-text-secondary);
-  background-color: var(--color-surface);
+  background-color: #F8FAFC;
   border-bottom: 1px solid var(--color-border);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 td {
@@ -152,16 +144,16 @@ tr:hover td {
 
 /* ── Clean Accessible Inputs ─────────────────────────────────────── */
 input, select, textarea {
-  background-color: var(--color-surface);
+  background-color: #FFFFFF;
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
-  border-radius: 0.625rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(24, 167, 123, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18) !important;
   outline: none !important;
 }
 
@@ -169,341 +161,68 @@ input::placeholder, textarea::placeholder {
   color: var(--color-text-muted);
 }
 
-/* Keep Tailwind utility-heavy screens on the same dark clinical palette. */
-.bg-white,
-.bg-gray-50,
-.bg-slate-50 {
-  background-color: var(--color-surface) !important;
-}
-
-.bg-gray-100,
-.bg-slate-100,
-.bg-gray-200,
-.bg-slate-200 {
-  background-color: var(--color-surface-hover) !important;
-}
-
-.text-gray-900,
-.text-slate-900,
-.text-gray-800,
-.text-slate-800,
-.text-gray-700,
-.text-slate-700 {
-  color: var(--color-text-primary) !important;
-}
-
-.text-gray-600,
-.text-slate-600,
-.text-gray-500,
-.text-slate-500 {
-  color: var(--color-text-secondary) !important;
-}
-
-.text-gray-400,
-.text-slate-400 {
-  color: var(--color-text-muted) !important;
-}
-
-.border-gray-100,
-.border-slate-100,
-.border-gray-200,
-.border-slate-200,
-.border-gray-300,
-.border-slate-300 {
-  border-color: var(--color-border) !important;
-}
-
-.bg-white\/5,
-.bg-white\/10,
-.bg-white\/\[0\.03\],
-.bg-white\/\[0\.04\],
-.bg-white\/\[0\.05\],
-.bg-white\/\[0\.06\] {
-  background-color: rgba(240, 238, 230, 0.06) !important;
-}
-
-.text-primary {
-  color: #42B88E !important;
-}
-
+/* ── Universal Clean Light Layout Rules ──────────────────────────── */
 .doctor-workspace,
-.app-content.doctor-workspace-content,
-.medivanta-login,
-.medivanta-register {
-  background: var(--color-bg) !important;
-  color: var(--color-text-primary) !important;
-}
-
-.doctor-workspace {
-  background: var(--color-bg) !important;
-  color: var(--color-text-primary) !important;
-}
-
-.app-sidebar.doctor-sidebar,
-.medivanta-login-panel,
-.medivanta-register-panel,
-.medivanta-login-card,
-.medivanta-register-card,
-.dashboard-stat-card,
-.gsap-card {
-  background: var(--color-surface) !important;
-  border-color: var(--color-border) !important;
+.app-content.doctor-workspace-content {
+  background: #F8FAFC !important;
   color: var(--color-text-primary) !important;
 }
 
 .app-sidebar.doctor-sidebar {
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.22) !important;
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 2px 0 12px rgba(15, 23, 42, 0.03) !important;
 }
 
 .doctor-brand,
 .doctor-brand span,
-.app-page-heading h1,
-.dashboard-stat-value,
-.gsap-card h3,
-.gsap-card h4 {
+.app-page-heading h1 {
   color: var(--color-text-primary) !important;
 }
 
 .app-sidebar-nav a,
 .app-sidebar-footer-item,
-.doctor-sidebar-toggle,
-.dashboard-stat-label {
-  color: var(--color-text-secondary);
+.doctor-sidebar-toggle {
+  color: #64748B;
 }
 
-.app-sidebar-nav a.active,
+.app-sidebar-nav a.active {
+  background: #16A34A !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25) !important;
+}
+
 .app-sidebar-nav a.active svg {
-  background: var(--color-primary) !important;
   color: #FFFFFF !important;
 }
 
-.app-sidebar-nav a:hover,
+.app-sidebar-nav a:hover:not(.active),
 .app-sidebar-footer-item:hover,
 .doctor-sidebar-toggle:hover {
-  background: rgba(240, 238, 230, 0.07);
+  background: #F1F5F9;
   color: var(--color-text-primary);
 }
 
-.app-page-heading p,
-.dashboard-card-action,
-.app-user-avatar {
-  color: #42B88E !important;
-}
-
-.app-user-avatar,
-.doctor-mobile-menu {
-  background: var(--color-surface-elevated) !important;
-  border-color: var(--color-border) !important;
-}
-
-.doctor-mobile-menu {
-  color: var(--color-text-primary) !important;
-}
-
-.dashboard-stat-card:hover,
-.gsap-card:hover {
-  border-color: rgba(24, 167, 123, 0.4) !important;
-  box-shadow: var(--shadow-card-hover) !important;
-}
-
-.dashboard-card-action {
-  border-color: var(--color-border-light) !important;
+.app-header.doctor-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: #E2E8F0 !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .doctor-dashboard-chart-track {
-  background: var(--color-surface-hover) !important;
+  background: #F1F5F9 !important;
 }
 
 .doctor-dashboard-chart-fill {
-  background: var(--color-primary) !important;
-}
-
-.app-header.doctor-header {
-  background: rgba(37, 39, 40, 0.94) !important;
-  border-color: var(--color-border) !important;
-}
-
-.medivanta-login-panel a > span,
-.medivanta-register-panel a > span {
-  color: #42B88E !important;
-}
-
-.medivanta-login-card input,
-.medivanta-register-card input,
-.medivanta-register-card select {
-  background-color: var(--color-surface-elevated) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-}
-
-.medivanta-login-card input::placeholder,
-.medivanta-register-card input::placeholder {
-  color: var(--color-text-muted) !important;
-}
-
-.medivanta-login-submit,
-.medivanta-register button[type="submit"] {
-  background: var(--color-primary) !important;
-  color: #FFFFFF !important;
-}
-
-.medivanta-login-submit:hover,
-.medivanta-register button[type="submit"]:hover {
-  background: var(--color-primary-hover) !important;
-}
-
-.medivanta-register-role-btn {
-  background: var(--color-surface-elevated);
-  border-color: var(--color-border);
-  color: var(--color-text-secondary);
-}
-
-.medivanta-register-role-btn:hover,
-.medivanta-register-role-btn.active {
-  background: rgba(24, 167, 123, 0.14);
-  border-color: var(--color-primary);
-  color: #70CAA7;
-}
-
-.auth-face-panel,
-.auth-face-loading {
-  background: var(--color-surface) !important;
-}
-
-.auth-face-corners {
-  background:
-    linear-gradient(#18A77B, #18A77B) left top / 2px 28px no-repeat,
-    linear-gradient(#18A77B, #18A77B) left top / 28px 2px no-repeat,
-    linear-gradient(#18A77B, #18A77B) right top / 2px 28px no-repeat,
-    linear-gradient(#18A77B, #18A77B) right top / 28px 2px no-repeat,
-    linear-gradient(#18A77B, #18A77B) left bottom / 2px 28px no-repeat,
-    linear-gradient(#18A77B, #18A77B) left bottom / 28px 2px no-repeat,
-    linear-gradient(#18A77B, #18A77B) right bottom / 2px 28px no-repeat,
-    linear-gradient(#18A77B, #18A77B) right bottom / 28px 2px no-repeat !important;
-}
-
-.auth-face-beam,
-.auth-face-point,
-.auth-face-badge-dot,
-.auth-face-status-dot {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 10px rgba(24, 167, 123, 0.55) !important;
-}
-
-.face-scan-dialog {
-  background: linear-gradient(145deg, #2B2D2D, #252728) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55) !important;
-}
-
-.face-scan-dialog .face-scan-header,
-.face-scan-dialog button {
-  border-color: var(--color-border) !important;
-}
-
-.face-scan-dialog :is(h2, p, label) {
-  color: var(--color-text-primary) !important;
-}
-
-.face-scan-dialog input[type="checkbox"] {
-  accent-color: var(--color-primary);
-}
-
-.face-scan-dialog [role="alert"],
-.face-scan-dialog [role="status"] {
-  background: var(--color-surface-elevated) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-}
-
-.face-vitals-console {
-  border-color: var(--color-border) !important;
-  background: linear-gradient(145deg, #2B2D2D, #252728 75%) !important;
-}
-
-.face-vitals-status {
-  border-color: var(--color-border) !important;
-  background: var(--color-surface-elevated) !important;
+  background: #16A34A !important;
 }
 
 button,
 input,
 select,
 textarea {
-  color-scheme: dark;
-}
-
-.bg-primary {
-  background-color: var(--color-primary) !important;
-}
-
-.hover\:bg-primary-hover:hover {
-  background-color: var(--color-primary-hover) !important;
-}
-
-.focus\:border-primary:focus {
-  border-color: var(--color-primary) !important;
-}
-
-.text-white {
-  color: #FFFFFF;
-}
-
-.app-page-heading h1,
-.medivanta-login .login-heading,
-.medivanta-register .register-heading,
-.medivanta-login-card label,
-.medivanta-register-card label {
-  color: var(--color-text-primary) !important;
-}
-
-.medivanta-login-card input,
-.medivanta-register-card input,
-.medivanta-register-card select {
-  background-color: var(--color-surface-elevated) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-}
-
-.medivanta-login-submit,
-.medivanta-register button[type="submit"] {
-  background: var(--color-primary) !important;
-}
-
-/* Catch page-level utility colors so every route follows the same theme. */
-#root [class*="text-blue-"],
-#root [class*="text-indigo-"],
-#root [class*="text-cyan-"],
-#root [class*="text-sky-"],
-#root [class*="text-violet-"],
-#root [class*="text-purple-"],
-#root [class*="text-[#396EF4]"],
-#root [class*="text-[#2F6BFF]"],
-#root [class*="text-[#2563EB]"],
-#root [class*="text-[#3B82F6]"],
-#root [class*="text-[#56E8F2]"],
-#root [class*="text-[#0D9488]"] {
-  color: #70CAA7 !important;
-}
-
-#root [class*="bg-blue-"],
-#root [class*="bg-indigo-"],
-#root [class*="bg-cyan-"],
-#root [class*="bg-sky-"],
-#root [class*="bg-violet-"],
-#root [class*="bg-purple-"] {
-  background-color: rgba(24, 167, 123, 0.14) !important;
-}
-
-#root [class*="border-blue-"],
-#root [class*="border-indigo-"],
-#root [class*="border-cyan-"],
-#root [class*="border-sky-"],
-#root [class*="border-violet-"],
-#root [class*="border-purple-"] {
-  border-color: rgba(24, 167, 123, 0.35) !important;
+  color-scheme: light;
 }
 
 /* ── Reduced Motion ───────────────────────────────────────────────── */

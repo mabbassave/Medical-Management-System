@@ -7,6 +7,8 @@ import {
   Clock,
   FileText,
   CheckCircle,
+  Activity,
+  ArrowUpRight,
 } from 'lucide-react';
 import api from '../../shared/services/api';
 import { fetchAuthorizedPatients } from '../../shared/services/patients';
@@ -15,7 +17,6 @@ import { useAuthStore } from '../../store/authStore';
 import { DashboardLayout } from '../templates/DashboardLayout';
 import { Card } from '../molecules/Card';
 import { Badge } from '../atoms/Badge';
-import { Button } from '../atoms/Button';
 import { Spinner } from '../atoms/Spinner';
 import { useFadeUp } from '../../shared/hooks/useFadeUp';
 
@@ -29,26 +30,31 @@ interface Appointment {
   status: string;
 }
 
-interface VitalRecord {
-  patientId: string;
-  status?: string;
-  heartRate?: number;
-  bloodPressure?: string;
-  bloodPressureSystolic?: number;
-  bloodPressureDiastolic?: number;
-  analysis?: {
-    status?: string;
-    message?: string;
-  };
-}
-
 interface CriticalAlert {
   patientId: string;
   patientName: string;
   detail: string;
 }
 
+interface Doctor {
+  doctorId: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  specialty?: string;
+  status?: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const getDoctorName = (d: Doctor): string => {
+  return d.fullName || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Dr. Unknown';
+};
+
+const getDoctorInitials = (name: string): string => {
+  const parts = name.replace(/^Dr\.?\s*/i, '').trim().split(' ');
+  return parts.slice(0, 2).map((p) => p[0]?.toUpperCase() || '').join('');
+};
 
 const getPatientName = (
   p: Appointment['patientId'],
@@ -84,31 +90,6 @@ const statusVariant = (status: string): 'success' | 'warning' | 'danger' => {
   return 'warning';
 };
 
-
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-
-interface StatCardProps {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-  iconBg: string;
-  valueCls?: string;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ label, value, icon, iconBg, valueCls }) => (
-  <Card className="border-border hover:border-primary/40 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-        <p className={`numeric text-3xl font-extrabold tracking-tight mt-1.5 ${valueCls ?? 'text-slate-900'}`}>{value}</p>
-      </div>
-      <div className={`p-3 rounded-2xl ${iconBg} shadow-xs`}>{icon}</div>
-    </div>
-  </Card>
-);
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
 export const DoctorDashboardPage: React.FC = () => {
   const { user } = useAuthStore();
 
@@ -120,6 +101,7 @@ export const DoctorDashboardPage: React.FC = () => {
   const [criticalAlerts, setCriticalAlerts] = useState<CriticalAlert[]>([]);
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [alertsError, setAlertsError] = useState<string | null>(null);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   useFadeUp(containerRef, [loading]);
@@ -185,7 +167,25 @@ export const DoctorDashboardPage: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
 
-  // Step 2 — once appointments load, scan vitals for critical readings
+  // Step 1b — fetch real doctors for Clinical Care Team
+  useEffect(() => {
+    let cancelled = false;
+    const fetchDoctors = async () => {
+      try {
+        const res = await api.get('/doctors', { skipToast: true }) as { data?: Doctor[] } | Doctor[];
+        if (!cancelled) {
+          const list = Array.isArray(res) ? res : ((res as { data?: Doctor[] }).data ?? []);
+          setDoctors(list.slice(0, 6));
+        }
+      } catch {
+        // silently ignore — section will show empty state
+      }
+    };
+    void fetchDoctors();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Step 2 — scan vitals for critical alerts
   useEffect(() => {
     if (allAppointments.length === 0) {
       setCriticalAlerts([]);
@@ -199,350 +199,468 @@ export const DoctorDashboardPage: React.FC = () => {
       new Set(allAppointments.map((appointment) => getPatientRawId(appointment.patientId)))
     ).filter(Boolean);
 
-    const fetchCriticalAlerts = async () => {
+    if (uniquePatientIds.length === 0) {
+      setCriticalAlerts([]);
+      setAlertsError(null);
+      setAlertsLoading(false);
+      return;
+    }
+
+    const checkCriticalVitals = async () => {
       setAlertsLoading(true);
       setAlertsError(null);
-      const results = await Promise.allSettled(
-        uniquePatientIds.map(async (pid): Promise<CriticalAlert | null> => {
-          const res: any = await api.get(`/vitals/patient/${encodeURIComponent(pid)}`, { skipToast: true });
-          const vitals: VitalRecord[] = Array.isArray(res) ? res : res.data ?? [];
-          const latest = vitals[0];
-          const latestStatus = latest?.analysis?.status || latest?.status;
-          if (!latest || latestStatus !== 'critical') return null;
+      try {
+        const alertPromises = uniquePatientIds.map(async (rawId) => {
+          try {
+            const res = await api.get(`/vitals/patient/${encodeURIComponent(rawId)}`, {
+              skipToast: true,
+            });
+            const records = (
+              Array.isArray(res)
+                ? res
+                : (res as { data?: unknown[] }).data || []
+            ) as Array<{
+              heartRate?: number;
+              bloodPressureSystolic?: number;
+              bloodPressureDiastolic?: number;
+              status?: string;
+              analysis?: { status?: string; message?: string };
+            }>;
 
-          const matchingAppt = allAppointments.find(
-            (appointment) => getPatientRawId(appointment.patientId) === pid
+            if (records.length === 0) return null;
+            const latest = records[0];
+            const isCritical =
+              latest.status?.toLowerCase() === 'critical' ||
+              latest.analysis?.status?.toLowerCase() === 'critical' ||
+              (latest.heartRate && (latest.heartRate > 120 || latest.heartRate < 45)) ||
+              (latest.bloodPressureSystolic && latest.bloodPressureSystolic > 180);
+
+            if (!isCritical) return null;
+
+            return {
+              patientId: rawId,
+              patientName: patientNames.get(rawId) || rawId,
+              detail:
+                latest.analysis?.message ||
+                `HR: ${latest.heartRate ?? '—'} bpm, BP: ${
+                  latest.bloodPressureSystolic ?? '—'
+                }/${latest.bloodPressureDiastolic ?? '—'}`,
+            };
+          } catch {
+            return null;
+          }
+        });
+
+        const results = await Promise.all(alertPromises);
+        if (!cancelled) {
+          setCriticalAlerts(
+            results.filter((a): a is CriticalAlert => a !== null)
           );
-          const name = patientNames.get(pid)
-            || (matchingAppt ? getPatientName(matchingAppt.patientId, pid) : pid);
-          const bloodPressure = latest.bloodPressure
-            || (latest.bloodPressureSystolic != null && latest.bloodPressureDiastolic != null
-              ? `${latest.bloodPressureSystolic}/${latest.bloodPressureDiastolic}`
-              : '');
-          const detail = bloodPressure
-            ? `BP: ${bloodPressure}${latest.heartRate ? `, HR: ${latest.heartRate} bpm` : ''}`
-            : latest.heartRate
-              ? `HR: ${latest.heartRate} bpm`
-              : latest.analysis?.message || 'Critical readings recorded';
-          return { patientId: pid, patientName: name, detail };
-        })
-      );
-      if (cancelled) return;
-      setCriticalAlerts(results.flatMap((result) =>
-        result.status === 'fulfilled' && result.value ? [result.value] : []
-      ));
-      const failedChecks = results.filter((result) => result.status === 'rejected').length;
-      if (failedChecks > 0) {
-        setAlertsError(`Could not load vitals for ${failedChecks} assigned patient${failedChecks === 1 ? '' : 's'}.`);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setAlertsError(
+            err instanceof Error ? err.message : 'Failed to check patient vitals.'
+          );
+        }
+      } finally {
+        if (!cancelled) setAlertsLoading(false);
       }
-      setAlertsLoading(false);
     };
 
-    void fetchCriticalAlerts();
+    void checkCriticalVitals();
     return () => {
       cancelled = true;
     };
   }, [allAppointments, patientNames]);
 
-  // ─── Derived values ─────────────────────────────────────────────────────────
-  const todaysAppointments = allAppointments.filter((a) => isToday(a.appointmentDate));
-  const recentActivity = allAppointments
-    .filter((appointment) => ['completed', 'cancelled', 'missed'].includes(appointment.status.toLowerCase()))
-    .sort((first, second) => new Date(second.appointmentDate).getTime() - new Date(first.appointmentDate).getTime())
-    .slice(0, 5);
+  // Step 3 — calculate dashboard metrics
+  const todaysAppointments = allAppointments.filter(
+    (a) => a.appointmentDate && isToday(a.appointmentDate)
+  );
 
   const uniquePatientCount = new Set(
-    allAppointments.map((appointment) => getPatientRawId(appointment.patientId))
+    allAppointments.map((a) => getPatientRawId(a.patientId)).filter(Boolean)
   ).size;
-  const appointmentStatusData = Array.from(
-    allAppointments.reduce((counts, appointment) => {
-      const status = appointment.status.trim() || 'Unspecified';
-      counts.set(status, (counts.get(status) ?? 0) + 1);
-      return counts;
-    }, new Map<string, number>())
-  )
-    .map(([status, count]) => ({
+
+  const appointmentStatusData = React.useMemo(() => {
+    if (allAppointments.length === 0) return [];
+    const counts = allAppointments.reduce<Record<string, number>>((acc, a) => {
+      const s = (a.status || 'unknown').toLowerCase();
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+    }, {});
+    const total = allAppointments.length;
+    return Object.entries(counts).map(([status, count]) => ({
       status,
       count,
-      percentage: allAppointments.length > 0
-        ? Math.round((count / allAppointments.length) * 100)
-        : 0,
-    }))
-    .sort((first, second) => second.count - first.count);
+      percentage: Math.round((count / total) * 100),
+    }));
+  }, [allAppointments]);
 
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  const recentActivity = allAppointments
+    .filter((a) =>
+      ['completed', 'cancelled', 'missed'].includes((a.status || '').toLowerCase())
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.appointmentDate).getTime() -
+        new Date(a.appointmentDate).getTime()
+    )
+    .slice(0, 5);
+
   return (
     <DashboardLayout>
-      <div ref={containerRef}>
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-textPrimary">
-            Good morning, Dr. {user?.name || user?.username || 'Doctor'} 👋
-          </h1>
-          <p className="text-sm text-textSecondary mt-1">
-            Your clinical summary for{' '}
-            {new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}.
-          </p>
+      <div ref={containerRef} className="space-y-8">
+        
+        {/* Welcome Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-card">
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 mb-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Clinical Station Active
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              Welcome, Dr. {user?.name || user?.username || 'Physician'}
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Here is an overview of your schedule, active patient cases, and critical alerts.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              to="/prescriptions/new"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-900 px-5 text-xs font-semibold text-white hover:bg-slate-800 transition-all shadow-sm"
+            >
+              <FileText className="h-4 w-4" />
+              New Prescription
+            </Link>
+            <Link
+              to="/vitals"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 text-xs font-semibold text-white hover:bg-emerald-700 transition-all shadow-sm"
+            >
+              <Activity className="h-4 w-4" />
+              Biometric Scan
+            </Link>
+          </div>
         </div>
 
-        {loading && (
-          <div className="flex items-center justify-center py-20 text-primary">
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
             <Spinner size="lg" />
-            <span className="ml-3 text-sm text-textSecondary">Loading your dashboard…</span>
           </div>
-        )}
-
-        {!loading && (
+        ) : (
           <>
             {appointmentsError && (
-              <div className="mb-6 rounded-md border border-danger/20 bg-danger/10 p-4 text-sm text-danger">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
                 {appointmentsError}
               </div>
             )}
             {patientsError && (
-              <div className="mb-6 rounded-md border border-warning/20 bg-warning/10 p-4 text-sm text-textSecondary">
-                Patient names could not be loaded: {patientsError}
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+                Patient records notice: {patientsError}
               </div>
             )}
-            {appointmentsError ? null : (
-            <>
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 gap-4 mb-8 sm:grid-cols-3">
-              <StatCard
-                label="Today's Appointments"
-                value={todaysAppointments.length}
-                icon={<Calendar className="w-5 h-5" />}
-                iconBg="bg-blue-50 text-blue-600 border border-blue-100"
-              />
-              <StatCard
-                label="Total Patients"
-                value={uniquePatientCount}
-                icon={<Users className="w-5 h-5" />}
-                iconBg="bg-teal-50 text-teal-600 border border-teal-100"
-              />
-              <StatCard
-                label="Critical Alerts"
-                value={criticalAlerts.length}
-                icon={<AlertTriangle className="w-5 h-5" />}
-                iconBg={
-                  criticalAlerts.length > 0
-                    ? 'bg-rose-50 text-rose-600 border border-rose-100'
-                    : 'bg-slate-50 text-slate-500 border border-slate-100'
-                }
-                valueCls={criticalAlerts.length > 0 ? 'text-rose-600' : 'text-slate-900'}
-              />
-            </div>
 
-            {/* Main content grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-              {/* Today's Schedule (2/3 wide) */}
-              <div className="lg:col-span-2">
-                <Card
-                  title="Today's Schedule"
-                  subtitle={`${todaysAppointments.length} appointment${todaysAppointments.length !== 1 ? 's' : ''} today`}
-                  className="shadow-md"
-                >
-                  {todaysAppointments.length === 0 ? (
-                    <div className="text-center py-10">
-                      <CheckCircle className="w-8 h-8 text-success mx-auto mb-2" />
-                      <p className="text-sm text-textSecondary">
-                        No appointments scheduled for today.
-                      </p>
-                    </div>
-                  ) : (
-                    <ul className="divide-y divide-border">
-                      {todaysAppointments.map((appt) => (
-                        <li
-                          key={appt.appointmentId}
-                          className="py-3 flex items-center justify-between gap-4"
-                        >
-                          {/* Time */}
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Clock className="w-4 h-4 text-textSecondary" />
-                            <span className="text-sm font-medium text-textPrimary w-12">
-                              {new Date(appt.appointmentDate).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-
-                          {/* Patient + reason */}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-textPrimary truncate">
-                              {patientNames.get(getPatientRawId(appt.patientId)) || getPatientName(appt.patientId)}
-                            </p>
-                            {appt.notes && (
-                              <p className="text-xs text-textSecondary truncate">{appt.notes}</p>
-                            )}
-                          </div>
-
-                          {/* Status */}
-                          <Badge
-                            variant={statusVariant(appt.status)}
-                            className="shrink-0 capitalize"
-                          >
-                            {appt.status}
-                          </Badge>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Card>
-              </div>
-
-              {/* Right column: Alerts + Quick Actions */}
-              <div className="flex flex-col gap-6">
-
-                {/* Critical Alerts */}
-                <Card
-                  title="Critical Alerts"
-                  subtitle="Patients with critical vitals"
-                  className={`shadow-md transition-shadow hover:shadow-lg ${criticalAlerts.length > 0 ? 'border-danger/40' : ''}`}
-                >
-                  {alertsLoading ? (
-                    <div className="flex items-center gap-2 py-4 text-textSecondary text-sm">
-                      <Spinner size="sm" />
-                      Checking vitals…
-                    </div>
-                  ) : alertsError ? (
-                    <div role="status" className="rounded-md border border-warning/20 bg-warning/10 p-3 text-xs text-textSecondary">
-                      {alertsError}
-                    </div>
-                  ) : criticalAlerts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CheckCircle className="w-7 h-7 text-success mx-auto mb-2" />
-                      <p className="text-sm text-textSecondary">All patients look stable.</p>
-                    </div>
-                  ) : (
-                    <ul className="space-y-3">
-                      {criticalAlerts.map((alert) => (
-                        <li
-                          key={alert.patientId}
-                          className="flex items-start gap-3 rounded-md border border-danger/20 bg-danger/10 p-3"
-                        >
-                          <AlertTriangle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-danger truncate">
-                              {alert.patientName}
-                            </p>
-                            <p className="text-xs text-danger mt-0.5">{alert.detail}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Card>
-
-                <Card
-                  title="Appointment overview"
-                  subtitle="Status distribution from your appointments"
-                >
-                  {appointmentStatusData.length === 0 ? (
-                    <p className="py-4 text-center text-sm text-textSecondary">
-                      No appointment data available to chart.
-                    </p>
-                  ) : (
-                    <div
-                      className="doctor-dashboard-chart"
-                      role="group"
-                      aria-label="Appointment status distribution"
-                    >
-                      {appointmentStatusData.map(({ status, count, percentage }) => (
-                        <div key={status} className="doctor-dashboard-chart-row">
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="truncate text-xs font-medium capitalize text-textPrimary">{status}</span>
-                            <span className="shrink-0 text-xs text-textSecondary">
-                              {count} <span className="text-textMuted">·</span> {percentage}%
-                            </span>
-                          </div>
-                          <div
-                            className="doctor-dashboard-chart-track"
-                            role="progressbar"
-                            aria-label={`${status} appointments`}
-                            aria-valuemin={0}
-                            aria-valuemax={allAppointments.length}
-                            aria-valuenow={count}
-                          >
-                            <span
-                              className={`doctor-dashboard-chart-fill ${statusVariant(status)}`}
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Card>
-
-                {/* Quick Actions */}
-                <Card title="Quick Actions">
-                  <div className="flex flex-col gap-3">
-                    <div className="rounded-xl border border-teal-200/80 bg-gradient-to-r from-teal-50 to-emerald-50 p-3.5 flex items-center justify-between">
+            {!appointmentsError && (
+              <>
+                {/* ── STATS CARDS: One solid green card + white cards with soft shadows ── */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                  
+                  {/* Card 1: Solid Soft Green Card */}
+                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-7 text-white shadow-md">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-bold text-teal-950">AI Vitals Facial Scan</p>
-                        <p className="text-[11px] text-teal-800">Contactless vital signs assessment</p>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-50 mb-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#EAB308]" />
+                          Scheduled Today
+                        </span>
+                        <p className="text-sm font-medium text-emerald-100">Today's Appointments</p>
+                        <p className="numeric text-4xl font-extrabold tracking-tight mt-1">
+                          {todaysAppointments.length}
+                        </p>
                       </div>
-                      <Link to="/vitals" className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover transition-colors">
-                        Scan now
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-sm">
+                        <Calendar className="h-7 w-7" />
+                      </div>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between text-xs text-emerald-100">
+                      <span>Live clinical queue</span>
+                      <Link to="/appointments" className="font-semibold underline hover:text-white flex items-center gap-1">
+                        View queue <ArrowUpRight className="h-3.5 w-3.5" />
                       </Link>
                     </div>
-                    <Link to="/prescriptions/new">
-                      <Button variant="primary" className="w-full">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Write Prescription
-                      </Button>
-                    </Link>
-                    <Link to="/patients">
-                      <Button variant="secondary" className="w-full">
-                        <Users className="w-4 h-4 mr-2" />
-                        View My Patients
-                      </Button>
-                    </Link>
                   </div>
-                </Card>
 
-              </div>
-            </div>
+                  {/* Card 2: White Card with Soft Green Accent */}
+                  <div className="rounded-3xl border border-slate-200/70 bg-white p-7 shadow-card hover:shadow-card-hover transition-all">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          Total Caseload
+                        </span>
+                        <p className="text-sm font-medium text-slate-600">Assigned Patients</p>
+                        <p className="numeric text-4xl font-extrabold tracking-tight text-slate-900 mt-1">
+                          {uniquePatientCount}
+                        </p>
+                      </div>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100/80">
+                        <Users className="h-7 w-7" />
+                      </div>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
+                      <span>Unique medical charts</span>
+                      <Link to="/patients" className="font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                        Patient directory <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
 
-            <div className="mt-6">
-              <Card title="Recent Activity" subtitle="Recently completed or cancelled appointments">
-                {recentActivity.length === 0 ? (
-                  <p className="py-4 text-center text-sm text-textSecondary">
-                    No recent appointment activity.
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-border">
-                    {recentActivity.map((appointment) => (
-                      <li
-                        key={appointment.appointmentId}
-                        className="flex flex-wrap items-center justify-between gap-3 py-3"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-textPrimary">
-                            {patientNames.get(getPatientRawId(appointment.patientId))
-                              || getPatientName(appointment.patientId)}
+                  {/* Card 3: White Card with Alert/Status Indicator */}
+                  <div className="rounded-3xl border border-slate-200/70 bg-white p-7 shadow-card hover:shadow-card-hover transition-all">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          Attention Required
+                        </span>
+                        <p className="text-sm font-medium text-slate-600">Critical Alerts</p>
+                        <p className={`numeric text-4xl font-extrabold tracking-tight mt-1 ${criticalAlerts.length > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                          {criticalAlerts.length}
+                        </p>
+                      </div>
+                      <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
+                        criticalAlerts.length > 0
+                          ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                          : 'bg-slate-50 text-slate-500 border border-slate-100'
+                      }`}>
+                        <AlertTriangle className="h-7 w-7" />
+                      </div>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
+                      <span>{criticalAlerts.length === 0 ? 'All vitals within safe thresholds' : 'Immediate review advised'}</span>
+                      <span className={`font-semibold ${criticalAlerts.length > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {criticalAlerts.length === 0 ? 'Normal' : 'Action needed'}
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* ── TEAM / DOCTOR SECTION WITH REAL DATA ── */}
+                <div className="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-card">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-7">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">Clinical Care Team</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">Active medical staff and consulting physicians</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-50 border border-emerald-100 px-3.5 py-1.5 text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      {doctors.length} {doctors.length === 1 ? 'Specialist' : 'Specialists'}
+                    </span>
+                  </div>
+
+                  {doctors.length === 0 ? (
+                    <p className="text-center text-sm text-slate-500 py-6">No doctors found in the system.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                      {doctors.map((doc) => {
+                        const name = getDoctorName(doc);
+                        const initials = getDoctorInitials(name);
+                        const displayName = name.startsWith('Dr.') ? name : `Dr. ${name}`;
+                        return (
+                          <div key={doc.doctorId} className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white p-5 transition-all duration-300 hover:border-emerald-200 hover:shadow-lg hover:-translate-y-1">
+                            <div className="flex flex-col items-center text-center">
+                              <div className="relative mb-4">
+                                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center text-xl font-extrabold border-2 border-white shadow-md">
+                                  {initials}
+                                </div>
+                                <span className="absolute -bottom-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 border-2 border-white shadow-sm">
+                                  <span className="h-2 w-2 rounded-full bg-white" />
+                                </span>
+                              </div>
+                              <p className="text-sm font-bold text-slate-900">{displayName}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">{doc.specialty || 'General Practice'}</p>
+                              <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-100">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                Available
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* ── MAIN CONTENT GRID: TODAY'S SCHEDULE + ALERTS/CHARTS ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                  {/* Left Column: Today's Schedule (2 cols wide) */}
+                  <div className="lg:col-span-2">
+                    <Card
+                      title="Today's Schedule"
+                      subtitle={`${todaysAppointments.length} appointment${todaysAppointments.length !== 1 ? 's' : ''} scheduled for today`}
+                    >
+                      {todaysAppointments.length === 0 ? (
+                        <div className="text-center py-12">
+                          <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-slate-800">
+                            No appointments scheduled for today.
                           </p>
-                          <p className="text-xs text-textSecondary">
-                            {new Date(appointment.appointmentDate).toLocaleString()}
+                          <p className="text-xs text-slate-500 mt-1">
+                            Your calendar is currently clear. Walk-ins can be registered anytime.
                           </p>
                         </div>
-                        <Badge variant={statusVariant(appointment.status)} className="capitalize">
-                          {appointment.status}
-                        </Badge>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Card>
-            </div>
-            </>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {todaysAppointments.map((appt) => (
+                            <div
+                              key={appt.appointmentId}
+                              className="p-3.5 flex items-center justify-between gap-4 bg-slate-50/60 hover:bg-slate-50 border border-slate-100/90 rounded-2xl transition-all"
+                            >
+                              <div className="flex items-center gap-3 shrink-0">
+                                <div className="h-9 w-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs">
+                                  <Clock className="w-4 h-4 text-emerald-600" />
+                                </div>
+                                <span className="text-sm font-bold text-slate-900 w-14">
+                                  {new Date(appt.appointmentDate).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-slate-900 truncate">
+                                  {patientNames.get(getPatientRawId(appt.patientId)) || getPatientName(appt.patientId)}
+                                </p>
+                                {appt.notes && (
+                                  <p className="text-xs text-slate-500 truncate mt-0.5">{appt.notes}</p>
+                                )}
+                              </div>
+
+                              <Badge
+                                variant={statusVariant(appt.status)}
+                                className="shrink-0 capitalize"
+                              >
+                                {appt.status}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </Card>
+                  </div>
+
+                  {/* Right Column: Alerts & Status Distribution Chart */}
+                  <div className="flex flex-col gap-6">
+
+                    {/* Critical Alerts Card */}
+                    <Card
+                      title="Critical Alerts"
+                      subtitle="Patients requiring immediate follow-up"
+                    >
+                      {alertsLoading ? (
+                        <div className="flex items-center gap-2 py-4 text-slate-500 text-sm">
+                          <Spinner size="sm" />
+                          Scanning telemetry…
+                        </div>
+                      ) : alertsError ? (
+                        <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+                          {alertsError}
+                        </div>
+                      ) : criticalAlerts.length === 0 ? (
+                        <div className="text-center py-6">
+                          <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                          <p className="text-sm font-semibold text-slate-800">All patients look stable.</p>
+                          <p className="text-xs text-slate-500 mt-0.5">No critical deviations detected.</p>
+                        </div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {criticalAlerts.map((alert) => (
+                            <li
+                              key={alert.patientId}
+                              className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/70 p-3.5"
+                            >
+                              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-rose-900 truncate">
+                                  {alert.patientName}
+                                </p>
+                                <p className="text-xs text-rose-700 mt-0.5">{alert.detail}</p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </Card>
+
+                    {/* Clean Status Distribution with Progress Bars */}
+                    <Card
+                      title="Appointment Status"
+                      subtitle="Breakdown of clinical appointments"
+                    >
+                      {appointmentStatusData.length === 0 ? (
+                        <p className="py-4 text-center text-sm text-slate-500">
+                          No appointment data recorded yet.
+                        </p>
+                      ) : (
+                        <div className="space-y-3.5 pt-1">
+                          {appointmentStatusData.map(({ status, count, percentage }) => (
+                            <div key={status} className="space-y-1.5">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold capitalize text-slate-800">{status}</span>
+                                <span className="font-semibold text-slate-500">{count} ({percentage}%)</span>
+                              </div>
+                              <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-emerald-600 transition-all duration-500"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </Card>
+
+                  </div>
+                </div>
+
+                {/* ── RECENT ACTIVITY TABLE ── */}
+                <div className="mt-2">
+                  <Card title="Recent Activity" subtitle="Recently completed or updated consultations">
+                    {recentActivity.length === 0 ? (
+                      <p className="py-6 text-center text-sm text-slate-500">
+                        No recent appointment activity to display.
+                      </p>
+                    ) : (
+                      <ul className="divide-y divide-slate-100">
+                        {recentActivity.map((appointment) => (
+                          <li
+                            key={appointment.appointmentId}
+                            className="flex flex-wrap items-center justify-between gap-3 py-3.5 hover:bg-slate-50/50 px-2 rounded-xl transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold text-slate-900">
+                                {patientNames.get(getPatientRawId(appointment.patientId))
+                                  || getPatientName(appointment.patientId)}
+                              </p>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {new Date(appointment.appointmentDate).toLocaleString()}
+                              </p>
+                            </div>
+                            <Badge variant={statusVariant(appointment.status)} className="capitalize">
+                              {appointment.status}
+                            </Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Card>
+                </div>
+
+              </>
             )}
           </>
         )}

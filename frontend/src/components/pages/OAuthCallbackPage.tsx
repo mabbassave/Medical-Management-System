@@ -95,26 +95,28 @@ export const OAuthCallbackPage = () => {
 
   if (!error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#171B1A] px-5 text-white">
-        <div role="status" className="flex items-center gap-3 text-sm text-white/75">
+      <main className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-5 text-slate-800">
+        <div role="status" className="flex items-center gap-3 text-sm font-medium text-slate-600 bg-white px-6 py-4 rounded-2xl border border-slate-200/80 shadow-sm">
           <Spinner size="sm" />
-          Verifying Google sign-in…
+          <span>Verifying Google sign-in…</span>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#171B1A] px-5 text-white">
-      <section className="w-full max-w-md rounded-3xl border border-white/10 bg-[#202725] p-8 text-center shadow-2xl">
-        <ShieldAlert className="mx-auto mb-4 h-9 w-9 text-[#CFE0FF]" aria-hidden="true" />
-        <h1 className="mb-3 text-2xl font-semibold">Sign-in could not be completed</h1>
-        <p role="alert" className="mb-7 text-sm leading-6 text-white/65">{error}</p>
+    <main className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-5 text-slate-900">
+      <section className="w-full max-w-md rounded-[2.5rem] border border-slate-200/90 bg-white p-8 text-center shadow-card">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shadow-2xs">
+          <ShieldAlert className="h-6 w-6 text-amber-600" aria-hidden="true" />
+        </div>
+        <h1 className="mb-2 text-2xl font-bold text-slate-900">Sign-in could not be completed</h1>
+        <p role="alert" className="mb-6 text-xs leading-relaxed text-slate-600 font-medium">{error}</p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link className="rounded-xl bg-[#CFE0FF] px-5 py-3 text-sm font-semibold text-[#171B1A] hover:bg-[#DCE7FF]" to="/login">
-            Log in
+          <Link className="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 shadow-sm transition-all" to="/login">
+            Return to Log in
           </Link>
-          <Link className="rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold text-white hover:bg-white/5" to="/register">
+          <Link className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all" to="/register">
             Create account
           </Link>
         </div>

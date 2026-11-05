@@ -122,38 +122,40 @@ const getVerificationErrorMessage = (error: unknown): string => {
     message?: string;
     response?: {
       status?: number;
-      data?: { diagnosticCode?: string };
+      data?: { diagnosticCode?: string; message?: string };
     };
   } | null;
   const status = requestError?.response?.status;
   const diagnosticCode = requestError?.response?.data?.diagnosticCode;
+  const serverMessage = requestError?.response?.data?.message;
+
+  if (serverMessage && typeof serverMessage === 'string' && serverMessage.trim()) {
+    return serverMessage.trim();
+  }
 
   if (
     status === 409
     || diagnosticCode === 'NO_ELIGIBLE_ENROLLMENT'
     || diagnosticCode === 'FACE_TEMPLATE_MISSING'
   ) {
-    return 'No eligible face enrollment is available for this sign-in. Use your password to sign in, then enroll or update your face from your account.';
+    return 'No active face enrollment found for this account. Sign in with your password, then enroll your face from your account security settings.';
   }
   if (status === 401 || diagnosticCode === 'FACE_MISMATCH') {
-    return 'The camera image did not match an eligible face enrollment. Retry with your enrolled face or sign in with your password.';
+    return 'The camera image did not match an enrolled face. Please ensure good lighting and face the camera directly, or sign in with your password.';
   }
   if (status === 429) {
     return 'Too many verification attempts were made. Wait for the retry timer, then try again or use your password.';
   }
   if (requestError?.code === 'ECONNABORTED' || requestError?.message?.toLowerCase().includes('timeout')) {
-    return 'Face verification timed out. No identity was confirmed. Retry when the service is available.';
+    return 'Face verification timed out. Please retry or sign in with your password.';
   }
   if (status === 503 || (typeof status === 'number' && status >= 500)) {
-    return 'Face verification is temporarily unavailable. No identity was confirmed. Please retry later or use your password.';
+    return 'Face verification service is currently unavailable. Please sign in with your email and password.';
   }
   if (requestError?.code === 'ERR_NETWORK' || requestError?.message === 'Network Error') {
     return 'The verification service could not be reached. Check your connection and retry, or use your password.';
   }
-  if (typeof status === 'number') {
-    return 'Face verification could not be completed. Retry or use your password to sign in.';
-  }
-  return requestError?.message || 'Face verification could not be completed. Please retry.';
+  return requestError?.message || 'Face verification could not be completed. Please retry or sign in with password.';
 };
 
 export const FaceScanModal: React.FC<FaceScanModalProps> = ({
@@ -213,6 +215,16 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
     setRetryDelaySeconds(0);
     onClose();
   };
+
+  // Auto-proceed to dashboard once verified
+  useEffect(() => {
+    if (stage === 'verified' && mode === 'login') {
+      const timer = window.setTimeout(() => {
+        onVerificationComplete?.();
+      }, 1100);
+      return () => window.clearTimeout(timer);
+    }
+  }, [stage, mode, onVerificationComplete]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -436,75 +448,71 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="face-verification-heading"
-      className="face-scan-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 backdrop-blur-md animate-fade-in sm:p-4"
+      className="face-scan-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 sm:p-4 backdrop-blur-sm animate-fade-in"
     >
-      <div className="face-scan-dialog relative flex w-full max-w-2xl flex-col rounded-3xl border border-[#56E8F2]/20 bg-[#071423] p-4 text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_30px_rgba(86,232,242,0.08)] sm:p-6">
+      <div className="face-scan-dialog relative flex w-full max-w-xl flex-col rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 text-slate-900 shadow-2xl">
         {/* Header */}
-        <div className="face-scan-header flex shrink-0 items-start justify-between gap-4 border-b border-white/10 pb-3 sm:pb-4">
+        <div className="face-scan-header flex shrink-0 items-start justify-between gap-4 pb-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex h-2 w-2 rounded-full bg-[#56E8F2]" />
-              <span className="text-[0.68rem] font-semibold uppercase tracking-wider text-[#56E8F2]">
-                Face {mode === 'login' ? 'sign-in' : 'registration'}
-              </span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 mb-2">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-600" />
+              <span>Biometric {mode === 'login' ? 'Sign-in' : 'Registration'}</span>
             </div>
-            <h2 id="face-verification-heading" className="text-lg font-bold tracking-tight text-white sm:text-2xl">
-              {mode === 'login' ? 'Face sign-in' : 'Face registration'}
+            <h2 id="face-verification-heading" className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              {mode === 'login' ? 'Face Sign-in' : 'Face Registration'}
             </h2>
-            <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/65 sm:text-sm">
+            <p className="mt-1 max-w-lg text-xs leading-relaxed text-slate-500 sm:text-sm">
               {mode === 'login'
-                ? 'A camera frame is compared on the server with your enrolled face. This similarity check does not detect presentation attacks.'
+                ? 'Your live camera image is securely verified against your enrolled face template. Quick, passwordless access.'
                 : captureOnly
-                  ? 'Capture a camera frame now. It will only be submitted for enrollment after your account is created.'
-                  : 'Medivanta processes the camera frame locally and stores an encrypted face template for your account. This does not verify legal identity or detect presentation attacks.'}
+                  ? 'Capture a camera frame now. It will be submitted for enrollment after your account is registered.'
+                  : 'A secure face biometric template is registered for your account. Raw camera frames are processed in-memory and never stored.'}
             </p>
           </div>
           <button
             type="button"
             onClick={handleClose}
             aria-label="Close face scan"
-            className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56E8F2]"
+            className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {(
-          <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs leading-relaxed text-white/70">
-            <input
-              type="checkbox"
-              checked={consentGiven}
-              disabled={stage === 'initializing' || stage === 'ready' || stage === 'capturing' || stage === 'captured' || stage === 'enrolled' || stage === 'verified'}
-              onChange={(event) => {
-                setConsentGiven(event.target.checked);
-                if (!event.target.checked) {
-                  stopCamera();
-                  setFailureReason('');
-                  setStage('idle');
-                }
-              }}
-              className="mt-0.5 accent-[#56E8F2]"
-            />
-            <span>
-              {mode === 'login'
-                ? 'I consent to sending this camera frame to Medivanta’s local face service to compare it with my encrypted face template. The camera image is processed in memory and is not stored. This check does not detect presentation attacks.'
-                : captureOnly
-                  ? 'I consent to capturing a camera frame in this browser and submitting it for server-side face enrollment after account registration. The frame is not uploaded unless account creation succeeds.'
-                  : 'I consent to sending this camera frame to Medivanta’s local face service to create an encrypted face template for my account. The camera image is processed in memory and is not stored. This does not detect presentation attacks.'}
-            </span>
-          </label>
-        )}
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 text-xs leading-relaxed text-slate-600">
+          <input
+            type="checkbox"
+            checked={consentGiven}
+            disabled={stage === 'initializing' || stage === 'ready' || stage === 'capturing' || stage === 'captured' || stage === 'enrolled' || stage === 'verified'}
+            onChange={(event) => {
+              setConsentGiven(event.target.checked);
+              if (!event.target.checked) {
+                stopCamera();
+                setFailureReason('');
+                setStage('idle');
+              }
+            }}
+            className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600"
+          />
+          <span>
+            {mode === 'login'
+              ? 'I consent to biometric face verification. The camera image is processed in memory and is not stored.'
+              : captureOnly
+                ? 'I consent to capturing a camera frame in this browser and submitting it for server-side face enrollment after registration.'
+                : 'I consent to registering an encrypted face template for passwordless authentication. Raw camera frames are never stored.'}
+          </span>
+        </label>
 
         {mode === 'enrollment' && captureDisabled && (
-          <p role="status" className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 p-3 text-xs text-amber-100">
-            Camera preview is available, but face enrollment is disabled by the server. No frame will be submitted.
+          <p role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            Camera preview is available, but face enrollment is disabled on this server.
           </p>
         )}
 
         {/* Viewport Container */}
         <div className="face-scan-preview-wrap">
           <div
-            className="face-scan-viewport relative mx-auto overflow-hidden rounded-2xl border border-[#56E8F2]/30 bg-[#06111D] shadow-[0_0_30px_rgba(86,232,242,0.12)]"
+            className="face-scan-viewport relative mx-auto overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-inner"
             aria-busy={stage === 'initializing' || stage === 'capturing'}
           >
             {/* Live Video Preview */}
@@ -521,80 +529,75 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
               style={{ transform: 'scaleX(-1)' }}
             />
 
-            {/* Technical grid backdrop (when camera is not active) */}
+            {/* Standby & Status Backdrop (when camera is not active) */}
             {stage !== 'ready' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                <div
-                  className="absolute inset-0 opacity-15"
-                  style={{
-                    backgroundImage: `radial-gradient(rgba(86,232,242,0.4) 1px, transparent 1px)`,
-                    backgroundSize: '20px 20px',
-                  }}
-                  aria-hidden="true"
-                />
-
                 {stage === 'idle' && (
                   <div className="relative z-10 flex flex-col items-center">
-                    <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#56E8F2]/30 bg-[#56E8F2]/10 text-[#56E8F2] shadow-[0_0_24px_rgba(86,232,242,0.2)]">
-                      <Camera className="h-8 w-8" />
+                    <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-600 shadow-sm">
+                      <Camera className="h-7 w-7" />
                     </div>
-                    <p className="text-sm font-semibold text-white">Live Camera Preview</p>
-                    <p className="mt-1 max-w-xs text-xs text-white/55">
-                      {mode === 'login'
-                        ? 'After you consent, one camera frame is sent to the server to compare with your enrolled face.'
-                        : captureOnly
-                          ? 'After you consent, one camera frame is captured and held temporarily in this browser until registration is submitted.'
-                          : 'After you consent, one camera frame is sent for server-side face enrollment.'}
+                    <p className="text-sm font-bold text-slate-800">Live Camera Standby</p>
+                    <p className="mt-1 max-w-xs text-xs text-slate-500">
+                      {consentGiven
+                        ? 'Click "Start Camera Preview" below to begin.'
+                        : 'Please check the consent box above to activate the camera.'}
                     </p>
                   </div>
                 )}
 
                 {stage === 'initializing' && (
                   <div className="relative z-10 flex flex-col items-center">
-                    <RefreshCw className="h-9 w-9 animate-spin text-[#56E8F2]" />
-                    <p className="mt-3 text-sm font-medium text-white">Preparing your camera…</p>
-                    <p className="mt-1 text-xs text-white/50">Requesting browser camera permission…</p>
+                    <RefreshCw className="h-8 w-8 animate-spin text-emerald-600" />
+                    <p className="mt-3 text-sm font-semibold text-slate-800">Preparing your camera…</p>
+                    <p className="mt-1 text-xs text-slate-500">Requesting webcam permission from browser…</p>
                   </div>
                 )}
 
                 {stage === 'failed' && (
                   <div className="relative z-10 flex flex-col items-center max-w-sm px-4">
-                    <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400">
-                      <ShieldAlert className="h-7 w-7" />
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-600">
+                      <ShieldAlert className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-semibold text-white">
-                      {mode === 'login' ? 'Camera or face sign-in unavailable' : 'Camera or face enrollment unavailable'}
+                    <p className="text-sm font-bold text-slate-900">
+                      {mode === 'login' ? 'Face Sign-in Unavailable' : 'Camera or Enrollment Error'}
                     </p>
-                    <p role="alert" className="mt-2 text-xs leading-relaxed text-white/70">{failureReason}</p>
+                    <p role="alert" className="mt-1.5 text-xs leading-relaxed text-slate-600">{failureReason}</p>
                   </div>
                 )}
 
                 {stage === 'enrolled' && (
                   <div role="status" className="relative z-10 flex flex-col items-center max-w-sm px-4">
-                    <CheckCircle2 className="mb-3 h-12 w-12 text-[#56E8F2]" />
-                    <p className="text-sm font-semibold text-white">Face enrollment complete</p>
-                    <p className="mt-2 text-xs leading-relaxed text-white/70">
-                      Local face processing created an encrypted template for your account. Your camera frame was not stored by Medivanta.
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                      <CheckCircle2 className="h-7 w-7" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-900">Face Enrollment Complete</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      Encrypted biometric template saved. You can now use Face Sign-in.
                     </p>
                   </div>
                 )}
 
                 {stage === 'verified' && (
                   <div role="status" className="relative z-10 flex flex-col items-center max-w-sm px-4">
-                    <CheckCircle2 className="mb-3 h-12 w-12 text-[#56E8F2]" />
-                    <p className="text-sm font-semibold text-white">Face sign-in verified</p>
-                    <p className="mt-2 text-xs leading-relaxed text-white/70">
-                      Medivanta confirmed this sign-in with the face-verification service. Continue to open the dashboard for your account.
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                      <CheckCircle2 className="h-7 w-7" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-900">Face Sign-in Verified</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      Identity confirmed successfully. Opening your dashboard…
                     </p>
                   </div>
                 )}
 
                 {stage === 'captured' && (
                   <div role="status" className="relative z-10 flex flex-col items-center max-w-sm px-4">
-                    <CheckCircle2 className="mb-3 h-12 w-12 text-[#56E8F2]" />
-                    <p className="text-sm font-semibold text-white">Camera frame captured</p>
-                    <p className="mt-2 text-xs leading-relaxed text-white/70">
-                      This is not face enrollment or verification. The frame will be submitted for enrollment only after your account is created.
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                      <CheckCircle2 className="h-7 w-7" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-900">Camera Frame Captured</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      Frame held securely until your account registration completes.
                     </p>
                   </div>
                 )}
@@ -604,28 +607,32 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
             {/* Overlays on Live Video */}
             {(stage === 'ready' || stage === 'capturing') && (
               <>
-                {/* Elegant Corner Brackets */}
-                <div className="pointer-events-none absolute inset-6 flex flex-col justify-between" aria-hidden="true">
+                {/* L-shaped corner brackets matching reference */}
+                <div className="pointer-events-none absolute inset-5 flex flex-col justify-between" aria-hidden="true">
                   <div className="flex justify-between">
-                    <div className="h-8 w-8 border-l-2 border-t-2 border-[#56E8F2] rounded-tl-lg shadow-[-2px_-2px_10px_rgba(86,232,242,0.5)]" />
-                    <div className="h-8 w-8 border-r-2 border-t-2 border-[#56E8F2] rounded-tr-lg shadow-[2px_-2px_10px_rgba(86,232,242,0.5)]" />
+                    <div className="h-7 w-7 border-l-[3px] border-t-[3px] border-emerald-400" />
+                    <div className="h-7 w-7 border-r-[3px] border-t-[3px] border-emerald-400" />
                   </div>
                   <div className="flex justify-between">
-                    <div className="h-8 w-8 border-l-2 border-b-2 border-[#56E8F2] rounded-bl-lg shadow-[-2px_2px_10px_rgba(86,232,242,0.5)]" />
-                    <div className="h-8 w-8 border-r-2 border-b-2 border-[#56E8F2] rounded-br-lg shadow-[2px_2px_10px_rgba(86,232,242,0.5)]" />
+                    <div className="h-7 w-7 border-l-[3px] border-b-[3px] border-emerald-400" />
+                    <div className="h-7 w-7 border-r-[3px] border-b-[3px] border-emerald-400" />
                   </div>
                 </div>
 
-                {/* Subtle Centered Reticle */}
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                  <div className="h-44 w-36 rounded-[50%] border border-[#56E8F2]/30 shadow-[0_0_20px_rgba(86,232,242,0.15)]" />
+                {/* Clean face-oval guide + animated scan line */}
+                <div className="face-scan-reticle pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                  <div className="face-scan-oval" />
+                  <div className="face-scan-line" />
                 </div>
 
                 {stage === 'capturing' && (
-                  <div role="status" className="absolute bottom-3 inset-x-3 flex items-center justify-center rounded-xl bg-black/60 px-3 py-1.5 text-xs text-white/80 backdrop-blur-md border border-white/10">
-                    {mode === 'enrollment'
-                      ? captureOnly ? 'Capturing frame for registration…' : 'Sending frame for server enrollment…'
-                      : 'Checking your enrolled face…'}
+                  <div role="status" className="absolute bottom-3 inset-x-4 flex items-center justify-center gap-2 rounded-xl bg-white/95 border border-slate-200/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-md backdrop-blur-md">
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+                    <span>
+                      {mode === 'login'
+                        ? 'Verifying face identity…'
+                        : 'Processing biometric template…'}
+                    </span>
                   </div>
                 )}
               </>
@@ -634,22 +641,22 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="face-scan-actions grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="face-scan-actions mt-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           {stage === 'idle' && (
             <>
               <button
                 type="button"
                 onClick={startCamera}
                 disabled={!consentGiven}
-                className="group relative inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#56E8F2] bg-[#071423] px-4 py-2.5 text-sm font-semibold text-[#56E8F2] shadow-[0_0_20px_rgba(86,232,242,0.18)] transition-all duration-200 hover:bg-[#1E2522] hover:shadow-[0_0_28px_rgba(86,232,242,0.32)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56E8F2] active:scale-[0.99]"
+                className="group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Camera className="h-4 w-4 shrink-0 text-[#56E8F2] transition-transform group-hover:scale-110" aria-hidden="true" />
+                <Camera className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" aria-hidden="true" />
                 <span>Start Camera Preview</span>
               </button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-transparent px-4 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
@@ -660,7 +667,7 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="col-span-full inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#56E8F2] bg-[#56E8F2] px-4 py-2.5 text-sm font-semibold text-[#071423]"
+              className="col-span-full inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-all"
             >
               {stage === 'captured' ? 'Return to registration' : 'Done'}
             </button>
@@ -670,10 +677,10 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
             <button
               type="button"
               onClick={onVerificationComplete}
-              className="col-span-full inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#56E8F2] bg-[#56E8F2] px-4 py-2.5 text-sm font-semibold text-[#071423] shadow-[0_0_24px_rgba(86,232,242,0.2)]"
+              className="col-span-full inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-all"
             >
               <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-              Continue to your dashboard
+              <span>Continue to your dashboard</span>
             </button>
           )}
 
@@ -681,9 +688,9 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
             <button
               type="button"
               disabled
-              className="col-span-full inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#56E8F2]/40 bg-[#071423] px-4 py-2.5 text-sm font-semibold text-[#56E8F2]/70 cursor-not-allowed opacity-80"
+              className="col-span-full inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-400 cursor-not-allowed"
             >
-              <RefreshCw className="h-4 w-4 animate-spin text-[#56E8F2]" />
+              <RefreshCw className="h-4 w-4 animate-spin text-emerald-600" />
               <span>Preparing your camera…</span>
             </button>
           )}
@@ -694,9 +701,9 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
                 type="button"
                 onClick={handleVerify}
                 disabled={mode === 'enrollment' && captureDisabled}
-                className="group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#56E8F2] bg-[#071423] px-4 py-2.5 text-sm font-semibold text-[#56E8F2] shadow-[0_0_24px_rgba(86,232,242,0.24)] transition-all duration-200 hover:bg-[#1E2522] hover:shadow-[0_0_32px_rgba(86,232,242,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56E8F2] active:scale-[0.99]"
+                className="group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-all active:scale-[0.99]"
               >
-                <Scan className="h-4 w-4 shrink-0 text-[#56E8F2] transition-transform group-hover:scale-110" />
+                <Scan className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" />
                 <span>
                   {mode === 'enrollment' && captureDisabled
                     ? 'Enrollment unavailable'
@@ -708,7 +715,7 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-transparent px-4 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
@@ -719,9 +726,9 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
             <button
               type="button"
               disabled
-              className="col-span-full inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#56E8F2]/40 bg-[#071423] px-4 py-2.5 text-sm font-semibold text-[#56E8F2]/80 cursor-wait"
+              className="col-span-full inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600/80 px-4 py-2.5 text-sm font-semibold text-white cursor-wait"
             >
-              <RefreshCw className="h-4 w-4 animate-spin text-[#56E8F2]" />
+              <RefreshCw className="h-4 w-4 animate-spin text-white" />
               <span>
                 {mode === 'login'
                   ? 'Verifying your face…'
@@ -738,9 +745,9 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
                 type="button"
                 onClick={startCamera}
                 disabled={retryDelaySeconds > 0}
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#56E8F2] bg-[#071423] px-4 py-2.5 text-sm font-semibold text-[#56E8F2] shadow-[0_0_20px_rgba(86,232,242,0.18)] transition-all duration-200 hover:bg-[#1E2522] hover:shadow-[0_0_28px_rgba(86,232,242,0.32)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#56E8F2]"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-all disabled:opacity-50"
               >
-                <RefreshCw className="h-4 w-4 shrink-0 text-[#56E8F2]" />
+                <RefreshCw className="h-4 w-4 shrink-0" />
                 <span>
                   {retryDelaySeconds > 0
                     ? `Try face sign-in again in ${retryDelaySeconds}s`
@@ -750,7 +757,7 @@ export const FaceScanModal: React.FC<FaceScanModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-transparent px-4 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 {mode === 'login' ? 'Sign in with Password Instead' : 'Close'}
               </button>

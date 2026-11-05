@@ -56,6 +56,16 @@ authRouter.post(
   authController.faceVerify
 );
 authRouter.post(
+  '/face-login',
+  faceImageUpload.single('image'),
+  validateFaceVerificationInput,
+  ensureFaceVerificationConfigured,
+  ensureFaceVerificationClientIdentity,
+  faceVerificationIpRateLimiter,
+  faceVerificationRateLimiter,
+  authController.faceVerify
+);
+authRouter.post(
   '/face-enroll',
   faceEnrollmentAuthMiddleware,
   faceEnrollmentRateLimiter,

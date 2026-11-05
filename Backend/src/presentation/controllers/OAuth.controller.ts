@@ -208,7 +208,6 @@ export class OAuthController {
       const requestedRole = req.query?.role;
       const requestedFlow = req.query?.flow;
       if (
-        (provider === 'google' && !isOAuthRole(requestedRole)) ||
         (requestedRole !== undefined && !isOAuthRole(requestedRole)) ||
         (requestedFlow !== undefined && requestedFlow !== 'login' && requestedFlow !== 'register')
       ) {
@@ -318,7 +317,7 @@ export class OAuthController {
         return;
       }
 
-      if (provider === 'google' && !isOAuthRole(signedState.role)) {
+      if (signedState.role !== undefined && !isOAuthRole(signedState.role)) {
         console.warn(
           `[OAuth] ${provider} callback rejected: role_missing_or_invalid (category=invalid_callback).`
         );
