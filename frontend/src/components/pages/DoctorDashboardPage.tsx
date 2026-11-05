@@ -433,11 +433,11 @@ export const DoctorDashboardPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div ref={containerRef} className="space-y-8">
+      <div ref={containerRef} className="min-w-0 space-y-8">
         
         {/* Welcome Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-card">
-          <div>
+          <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 mb-2">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               Clinical Station Active
@@ -449,7 +449,7 @@ export const DoctorDashboardPage: React.FC = () => {
               Here is an overview of your schedule, active patient cases, and critical alerts.
             </p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/prescriptions/new"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-900 px-5 text-xs font-semibold text-white hover:bg-slate-800 transition-all shadow-sm"
@@ -487,10 +487,10 @@ export const DoctorDashboardPage: React.FC = () => {
             {!appointmentsError && (
               <>
                 {/* ── STATS CARDS: One solid green card + white cards with soft shadows ── */}
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
                   
                   {/* Card 1: Solid Soft Green Card */}
-                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-7 text-white shadow-md">
+                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-5 sm:p-7 text-white shadow-md">
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-50 mb-2">
@@ -515,7 +515,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   </div>
 
                   {/* Card 2: White Card with Soft Green Accent */}
-                  <div className="rounded-3xl border border-slate-200/70 bg-white p-7 shadow-card hover:shadow-card-hover transition-all">
+                  <div className="rounded-3xl border border-slate-200/70 bg-white p-5 sm:p-7 shadow-card hover:shadow-card-hover transition-all">
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -539,7 +539,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   </div>
 
                   {/* Card 3: White Card with Alert/Status Indicator */}
-                  <div className="rounded-3xl border border-slate-200/70 bg-white p-7 shadow-card hover:shadow-card-hover transition-all">
+                  <div className="rounded-3xl border border-slate-200/70 bg-white p-5 sm:p-7 shadow-card hover:shadow-card-hover transition-all">
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -584,7 +584,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   {doctors.length === 0 ? (
                     <p className="text-center text-sm text-slate-500 py-6">No doctors found in the system.</p>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-3">
                       {doctors.map((doc) => {
                         const name = getDoctorName(doc);
                         const initials = getDoctorInitials(name);
@@ -615,7 +615,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 </div>
 
                 {/* ── MAIN CONTENT GRID: TODAY'S SCHEDULE + ALERTS/CHARTS ── */}
-                <div className="doctor-dashboard-sections grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="doctor-dashboard-sections grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
 
                   {/* Left Column: Today's Schedule (2 cols wide) */}
                   <div className="doctor-dashboard-schedule lg:col-span-2">
@@ -643,7 +643,7 @@ export const DoctorDashboardPage: React.FC = () => {
                           {todaysAppointments.map((appt) => (
                             <div
                               key={appt.appointmentId}
-                              className="group p-3.5 flex items-center justify-between gap-4 bg-white hover:bg-slate-50/80 border border-slate-100 rounded-2xl transition-all duration-200 hover:border-slate-200 hover:shadow-sm"
+                              className="group flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-3.5 transition-all duration-200 hover:border-slate-200 hover:bg-slate-50/80 hover:shadow-sm"
                             >
                               <div className="flex items-center gap-3 shrink-0">
                                 <div className="h-9 w-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs">

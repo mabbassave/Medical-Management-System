@@ -291,23 +291,31 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         style={{ display: 'none', opacity: 0 }}
       />
 
+      {isDashboardWorkspace && <div className="w-16 shrink-0 md:hidden" aria-hidden="true" />}
+
       {/* Mobile sidebar */}
       <aside
         id="mobile-sidebar"
-        className={`${isDashboardWorkspace ? 'app-sidebar doctor-sidebar ' : ''}fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-textPrimary/10 bg-surface transition-transform duration-300 ease-out md:hidden`}
-        style={{ transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)' }}
-        aria-hidden={!mobileOpen}
-        inert={!mobileOpen}
+        className={`${isDashboardWorkspace ? 'app-sidebar doctor-sidebar fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200/70 bg-white transition-[width] duration-300 ease-out' : 'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-textPrimary/10 bg-surface transition-transform duration-300 ease-out'} md:hidden ${isDashboardWorkspace ? (mobileOpen ? 'w-64 shadow-xl' : 'is-icon-rail w-16') : ''}`}
+        style={isDashboardWorkspace ? { transform: 'translateX(0)' } : { transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)' }}
+        aria-hidden={!isDashboardWorkspace && !mobileOpen}
+        inert={!isDashboardWorkspace && !mobileOpen}
       >
-        <div className="app-sidebar-top flex h-16 items-center justify-between border-b border-slate-100 px-6">
-          <div className="doctor-brand flex items-center gap-2.5">
-            <AivoraLogo className="h-7 w-7" />
-            <span className="text-lg font-bold tracking-tight text-slate-900 flex items-center">
-              MediCure
-              <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#EAB308]" />
-            </span>
-          </div>
-          {!isDashboardWorkspace && (
+        <div className={`app-sidebar-top flex h-16 shrink-0 items-center border-b border-slate-100 ${isDashboardWorkspace ? mobileOpen ? 'justify-between px-4' : 'justify-center px-2' : 'justify-between px-6'}`}>
+          {(!isDashboardWorkspace || mobileOpen) && <div className="doctor-brand flex items-center gap-2.5"><AivoraLogo className="h-7 w-7" /><span className="text-lg font-bold tracking-tight text-slate-900 flex items-center">MediCure<span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#EAB308]" /></span></div>}
+          {isDashboardWorkspace ? (
+            <button
+              type="button"
+              onClick={() => setMobileOpen((open) => !open)}
+              aria-controls="mobile-sidebar"
+              aria-expanded={mobileOpen}
+              aria-label={mobileOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              title={mobileOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              className="doctor-sidebar-toggle shrink-0"
+            >
+              {mobileOpen ? <PanelLeftClose className="h-4 w-4" aria-hidden="true" /> : <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />}
+            </button>
+          ) : (
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
@@ -318,7 +326,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             </button>
           )}
         </div>
-        <nav className="app-sidebar-nav relative flex-1 space-y-1.5 overflow-y-auto px-4 py-4">
+        <nav className={`app-sidebar-nav relative flex-1 space-y-1.5 overflow-y-auto py-4 ${isDashboardWorkspace && !mobileOpen ? 'px-2' : 'px-4'}`}>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -326,37 +334,43 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
+                title={isDashboardWorkspace && !mobileOpen ? item.label : undefined}
+                aria-label={isDashboardWorkspace && !mobileOpen ? item.label : undefined}
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-2.5 text-sm font-medium rounded-2xl transition-all ${
+                  `flex items-center py-2.5 text-sm font-medium rounded-2xl transition-all ${isDashboardWorkspace && !mobileOpen ? 'justify-center px-0' : 'px-4'} ${
                     isActive
                       ? 'active bg-emerald-600 text-white font-semibold shadow-sm'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`
                 }
               >
-                <Icon className="w-4 h-4 mr-3 shrink-0" />
-                {item.label}
+                <Icon className={`w-4 h-4 shrink-0 ${isDashboardWorkspace && !mobileOpen ? '' : 'mr-3'}`} />
+                <span className={isDashboardWorkspace && !mobileOpen ? 'sr-only' : ''}>{item.label}</span>
               </NavLink>
             );
           })}
         </nav>
         {isDashboardWorkspace ? (
-          <div className="app-sidebar-bottom space-y-2 border-t border-slate-100 px-4 py-4">
+          <div className={`app-sidebar-bottom space-y-2 border-t border-slate-100 py-4 ${mobileOpen ? 'px-4' : 'px-2'}`}>
             <NavLink
               to={isPatientWorkspace ? '/portal' : '/profile'}
               onClick={() => setMobileOpen(false)}
-              className="app-sidebar-footer-item"
+              title={!mobileOpen ? 'Profile' : undefined}
+              aria-label={!mobileOpen ? 'Profile' : undefined}
+              className={`app-sidebar-footer-item ${mobileOpen ? '' : 'justify-center px-0'}`}
             >
-              <UserRound className="mr-3 h-4 w-4 shrink-0" aria-hidden="true" />
-              Profile
+              <UserRound className={`h-4 w-4 shrink-0 ${mobileOpen ? 'mr-3' : ''}`} aria-hidden="true" />
+              <span className={!mobileOpen ? 'sr-only' : ''}>Profile</span>
             </NavLink>
             <button
               type="button"
               onClick={handleLogout}
-              className="app-sidebar-footer-item"
+              title={!mobileOpen ? 'Log out' : undefined}
+              aria-label="Log out"
+              className={`app-sidebar-footer-item ${mobileOpen ? '' : 'justify-center px-0'}`}
             >
-              <LogOut className="h-4 w-4 mr-3 shrink-0" aria-hidden="true" />
-              Log out
+              <LogOut className={`h-4 w-4 shrink-0 ${mobileOpen ? 'mr-3' : ''}`} aria-hidden="true" />
+              <span className={!mobileOpen ? 'sr-only' : ''}>Log out</span>
             </button>
           </div>
         ) : (
@@ -372,8 +386,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className={`app-sidebar doctor-sidebar hidden shrink-0 flex-col border-r border-slate-200/70 bg-white transition-[width] duration-250 md:flex ${desktopCollapsed ? 'is-collapsed w-20' : 'w-64'}`}>
-        <div className={`app-sidebar-top flex h-18 shrink-0 items-center justify-between border-b border-slate-100 ${desktopCollapsed ? 'px-2' : 'px-4'}`}>
+      <aside className={`app-sidebar doctor-sidebar hidden shrink-0 flex-col border-r border-slate-200/70 bg-white transition-[width] duration-250 md:flex ${desktopCollapsed ? 'is-collapsed w-[72px]' : 'w-64'}`}>
+        <div className={`app-sidebar-top flex h-18 shrink-0 items-center justify-between border-b border-slate-100 ${desktopCollapsed ? 'px-1' : 'px-4'}`}>
           <div className="doctor-brand flex items-center gap-2.5">
             <AivoraLogo className="h-8 w-8 shrink-0" />
             {!desktopCollapsed && (
@@ -458,19 +472,20 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
       {/* Main Content Area */}
       <div className="app-main flex min-w-0 min-h-0 flex-1 flex-col overflow-hidden bg-[#F8FAFC]">
-        <header className={`app-header doctor-header flex h-18 shrink-0 items-center justify-between border-b border-slate-200/70 bg-white/95 backdrop-blur-md px-6 sm:px-8 ${isPatientWorkspace ? 'patient-header' : ''}`}>
+        <header className={`app-header doctor-header flex h-18 shrink-0 items-center justify-between border-b border-slate-200/70 bg-white/95 backdrop-blur-md px-3 sm:px-5 lg:px-8 ${isPatientWorkspace ? 'patient-header' : ''}`}>
           <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileOpen((open) => !open)}
-              aria-controls="mobile-sidebar"
-              aria-expanded={mobileOpen}
-              aria-label={mobileOpen ? 'Close navigation sidebar' : 'Open navigation sidebar'}
-              title={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
-              className={`doctor-mobile-menu inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 md:hidden ${mobileOpen && isDashboardWorkspace ? 'doctor-mobile-menu-inside-sidebar' : ''}`}
-            >
-              {mobileOpen && isDashboardWorkspace ? <PanelLeftClose className="h-4 w-4" aria-hidden="true" /> : mobileOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Menu className="h-4 w-4" aria-hidden="true" />}
-            </button>
+            {!isDashboardWorkspace && (
+              <button
+                type="button"
+                onClick={() => setMobileOpen((open) => !open)}
+                aria-controls="mobile-sidebar"
+                aria-expanded={mobileOpen}
+                aria-label={mobileOpen ? 'Close navigation sidebar' : 'Open navigation sidebar'}
+                className="doctor-mobile-menu inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 md:hidden"
+              >
+                {mobileOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Menu className="h-4 w-4" aria-hidden="true" />}
+              </button>
+            )}
 
             <div className="app-page-heading min-w-0">
               <h1 className="truncate text-xl font-bold tracking-tight text-slate-900">{pageTitle}</h1>
@@ -549,7 +564,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         </header>
         <main
           ref={contentRef}
-          className="app-content doctor-workspace-content min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain p-8"
+          className="app-content doctor-workspace-content min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain p-4 sm:p-6 lg:p-8"
         >
           <div className="app-content-shell mx-auto w-full max-w-[1200px] doctor-content-shell">
             {children}

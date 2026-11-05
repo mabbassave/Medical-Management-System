@@ -18,6 +18,12 @@
   }
 }
 
+.doctor-dashboard-sections > *,
+.doctor-dashboard-side > *,
+.doctor-dashboard-activity {
+  min-width: 0;
+}
+
 /* ── Light Navigation Sidebar ─────────────────────────────────────── */
 .app-sidebar.doctor-sidebar {
   background: #FFFFFF !important;
@@ -28,11 +34,13 @@
 }
 
 .app-sidebar.doctor-sidebar.is-collapsed {
-  width: 80px;
+  width: 72px;
 }
 
 .app-sidebar.doctor-sidebar.is-collapsed .app-sidebar-nav a,
-.app-sidebar.doctor-sidebar.is-collapsed .doctor-sidebar-bottom .app-sidebar-footer-item {
+.app-sidebar.doctor-sidebar.is-collapsed .doctor-sidebar-bottom .app-sidebar-footer-item,
+.app-sidebar.doctor-sidebar.is-icon-rail .app-sidebar-nav a,
+.app-sidebar.doctor-sidebar.is-icon-rail .app-sidebar-bottom .app-sidebar-footer-item {
   justify-content: center;
   padding-left: 0;
   padding-right: 0;
@@ -78,16 +86,6 @@
   background: #F1F5F9;
   color: #0F172A;
   border-color: #CBD5E1;
-}
-
-@media (max-width: 767px) {
-  .doctor-mobile-menu-inside-sidebar {
-    position: fixed;
-    top: 1.25rem;
-    left: 13rem;
-    z-index: 60;
-    background: #FFFFFF;
-  }
 }
 
 /* Sidebar Navigation Items */
